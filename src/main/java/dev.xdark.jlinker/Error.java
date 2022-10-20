@@ -18,7 +18,7 @@ public final class Error<V> implements Result<V> {
 
     @Override
     public V value() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(error.name());
     }
 
     @Override

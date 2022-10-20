@@ -38,8 +38,24 @@ public interface LinkResolver<C, M, F> {
      */
     Result<Resolution<C, M>> resolveInterfaceMethod(ClassInfo<C> owner, String name, String descriptor);
 
+    /**
+     * Resolves static field.
+     *
+     * @param owner      Field owner.
+     * @param name       Field name.
+     * @param descriptor Field descriptor.
+     * @return Resolution result.
+     */
     Result<Resolution<C, F>> resolveStaticField(ClassInfo<C> owner, String name, String descriptor);
 
+    /**
+     * Resolves virtual field.
+     *
+     * @param owner      Field owner.
+     * @param name       Field name.
+     * @param descriptor Field descriptor.
+     * @return Resolution result.
+     */
     Result<Resolution<C, F>> resolveVirtualField(ClassInfo<C> owner, String name, String descriptor);
 
     /**

@@ -124,12 +124,19 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
         ClassInfo<C> info = owner;
         try (Arena<ClassInfo<C>> arena = classArenaAllocator.push()) {
             arena.push(owner);
+            Resolution<C, M> candidate = null;
             while ((owner = arena.poll()) != null) {
                 MemberInfo<M> member = (MemberInfo<M>) owner.getMethod(name, descriptor);
                 if (member != null) {
-                    return new Resolution<>(owner, member, false);
+                    candidate = new Resolution<>(owner, member, false);
+                    if (!Modifier.isAbstract(member.accessFlags())) {
+                        return candidate;
+                    }
                 }
                 arena.push(owner.interfaces());
+            }
+            if (candidate != null) {
+                return candidate;
             }
         }
         // We have corner case when a compiler can generate interface call
