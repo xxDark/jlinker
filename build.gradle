@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'maven-publish'
 }
 
 group 'dev.xdark'
@@ -16,6 +17,33 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junitVersion"
 }
 
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs.addAll(['-parameters', '-g:lines,source,vars'])
+}
+
 test {
     useJUnitPlatform()
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.java
+    classifier = 'sources'
+}
+
+publishing {
+    repositories {
+        maven {
+            name = 'sources-repo'
+            url = 'file:///tmp/sources-repo'
+        }
+    }
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+        }
+    }
 }
