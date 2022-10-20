@@ -69,6 +69,47 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
         return Result.ok(resolution);
     }
 
+    @Override
+    public Result<Resolution<C, F>> resolveStaticField(ClassInfo<C> owner, String name, String descriptor) {
+        ClassInfo<C> info = owner;
+        MemberInfo<F> field = null;
+        while (owner != null) {
+            field = (MemberInfo<F>) owner.getField(name, descriptor);
+            if (field != null) {
+                break;
+            }
+            owner = owner.superClass();
+        }
+        if (field == null) {
+            try (Arena<ClassInfo<C>> arena = classArenaAllocator.push()) {
+                arena.push(info.interfaces());
+                while ((info = arena.poll()) != null) {
+                    field = (MemberInfo<F>) info.getField(name, descriptor);
+                    if (field != null) {
+                        break;
+                    }
+                    arena.push(info.interfaces());
+                }
+            }
+        }
+        if (field == null) {
+            return Result.error(ResolutionError.NO_SUCH_FIELD);
+        }
+        return Result.ok(new Resolution<>(info, field, false));
+    }
+
+    @Override
+    public Result<Resolution<C, F>> resolveVirtualField(ClassInfo<C> owner, String name, String descriptor) {
+        while (owner != null) {
+            MemberInfo<F> field = (MemberInfo<F>) owner.getField(name, descriptor);
+            if (field != null && !Modifier.isStatic(field.accessFlags())) {
+                return Result.ok(new Resolution<>(owner, field, false));
+            }
+            owner = owner.superClass();
+        }
+        return Result.error(ResolutionError.NO_SUCH_FIELD);
+    }
+
     Resolution<C, M> uncachedLookupMethod(ClassInfo<C> owner, String name, String descriptor) {
         do {
             MemberInfo<M> member = (MemberInfo<M>) owner.getMethod(name, descriptor);

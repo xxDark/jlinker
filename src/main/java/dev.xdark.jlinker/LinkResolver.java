@@ -38,6 +38,10 @@ public interface LinkResolver<C, M, F> {
      */
     Result<Resolution<C, M>> resolveInterfaceMethod(ClassInfo<C> owner, String name, String descriptor);
 
+    Result<Resolution<C, F>> resolveStaticField(ClassInfo<C> owner, String name, String descriptor);
+
+    Result<Resolution<C, F>> resolveVirtualField(ClassInfo<C> owner, String name, String descriptor);
+
     /**
      * @param classArenaAllocator Class arena allocator.
      * @return JVM link resolver.

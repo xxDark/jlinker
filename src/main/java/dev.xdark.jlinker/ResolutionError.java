@@ -13,4 +13,5 @@ public enum ResolutionError {
     NO_SUCH_METHOD,
     METHOD_NOT_STATIC,
     METHOD_NOT_VIRTUAL,
+    NO_SUCH_FIELD,
 }
