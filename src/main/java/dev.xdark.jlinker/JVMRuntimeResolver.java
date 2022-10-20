@@ -17,13 +17,17 @@ final class JVMRuntimeResolver<C, M> implements RuntimeResolver<C, M> {
 
     @Override
     public Result<Resolution<C, M>> resolveVirtualMethod(ClassInfo<C> owner, String name, String descriptor) {
-        // And here too
-        return linkResolver.resolveVirtualMethod(owner, name, descriptor);
+        Result<Resolution<C, M>> result = linkResolver.resolveVirtualMethod(owner, name, descriptor);
+        if (result.isSuccess()) {
+            if (Modifier.isAbstract(result.value().member().accessFlags())) {
+                return Result.error(ResolutionError.METHOD_IS_ABSTRACT);
+            }
+        }
+        return result;
     }
 
     @Override
     public Result<Resolution<C, M>> resolveInterfaceMethod(ClassInfo<C> owner, String name, String descriptor) {
-        // But not here :(
         // No checks, should be done by LinkResolver
         // linkResolver must be JVMLinkResolver
         Resolution<C, M> resolution = ((JVMLinkResolver) linkResolver).uncachedLookupMethod(owner, name, descriptor);
@@ -31,10 +35,14 @@ final class JVMRuntimeResolver<C, M> implements RuntimeResolver<C, M> {
             resolution = ((JVMLinkResolver) linkResolver).uncachedInterfaceMethod(owner, name, descriptor);
         }
         if (resolution != null) {
-            if (!Modifier.isStatic(resolution.member().accessFlags())) {
-                return Result.ok(resolution);
+            int accessFlags = resolution.member().accessFlags();
+            if (Modifier.isStatic(accessFlags)) {
+                return Result.error(ResolutionError.METHOD_NOT_VIRTUAL);
             }
-            return Result.error(ResolutionError.METHOD_NOT_VIRTUAL);
+            if (Modifier.isAbstract(accessFlags)) {
+                return Result.error(ResolutionError.METHOD_IS_ABSTRACT);
+            }
+            return Result.ok(resolution);
         }
         return Result.error(ResolutionError.NO_SUCH_METHOD);
     }
