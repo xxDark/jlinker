@@ -7,13 +7,12 @@ import java.util.Arrays;
  *
  * @author xDark
  */
-public final class FrameArenaAllocator<T> implements ArenaAllocator<T>, Arena<T> {
+public final class FrameArenaAllocator<T> implements ArenaAllocator<T> {
     private static final Object[] EMPTY_ARRAY = {};
 
     private int[] frames = new int[16];
     private int frameIndex;
-    private T[] cache = (T[]) EMPTY_ARRAY;
-    private int index;
+    private final Impl<T> impl = new Impl<>();
 
     @Override
     public Arena<T> push() {
@@ -24,32 +23,39 @@ public final class FrameArenaAllocator<T> implements ArenaAllocator<T>, Arena<T>
             frames = Arrays.copyOf(frames, nextFrame + 16);
             this.frames = frames;
         }
-        frames[nextFrame] = index;
-        return this;
+        Impl<T> impl = this.impl;
+        frames[nextFrame] = impl.index;
+        return impl;
     }
 
-    @Override
-    public void close() {
-        index = frames[--frameIndex];
-    }
+    private final class Impl<T> implements Arena<T> {
 
-    @Override
-    public void push(T value) {
-        T[] cache = this.cache;
-        int index = this.index++;
-        if (index == cache.length) {
-            cache = Arrays.copyOf(cache, index + 16);
-            this.cache = cache;
+        private T[] cache = (T[]) EMPTY_ARRAY;
+        private int index;
+
+        @Override
+        public void push(T value) {
+            T[] cache = this.cache;
+            int index = this.index++;
+            if (index == cache.length) {
+                cache = Arrays.copyOf(cache, index + 16);
+                this.cache = cache;
+            }
+            cache[index] = value;
         }
-        cache[index] = value;
-    }
 
-    @Override
-    public T poll() {
-        int index = this.index;
-        if (index == frames[frameIndex - 1]) {
-            return null;
+        @Override
+        public T poll() {
+            int index = this.index;
+            if (index == frames[frameIndex - 1]) {
+                return null;
+            }
+            return cache[this.index = --index];
         }
-        return cache[this.index = --index];
+
+        @Override
+        public void close() {
+            index = frames[--frameIndex];
+        }
     }
 }
