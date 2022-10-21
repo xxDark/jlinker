@@ -1,5 +1,7 @@
 package dev.xdark.jlinker;
 
+import java.lang.reflect.Modifier;
+
 /**
  * Link time resolver.
  *
@@ -17,6 +19,18 @@ public interface LinkResolver<C, M, F> {
      * @return Resolution result.
      */
     Result<Resolution<C, M>> resolveStaticMethod(ClassInfo<C> owner, String name, String descriptor, boolean itf);
+
+    /**
+     * Resolves static method.
+     *
+     * @param owner      Method owner.
+     * @param name       Method name.
+     * @param descriptor Method descriptor.
+     * @return Resolution result.
+     */
+    default Result<Resolution<C, M>> resolveStaticMethod(ClassInfo<C> owner, String name, String descriptor) {
+        return resolveStaticMethod(owner, name, descriptor, Modifier.isInterface(owner.accessFlags()));
+    }
 
     /**
      * Resolves virtual method.

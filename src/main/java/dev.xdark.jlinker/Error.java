@@ -5,20 +5,20 @@ package dev.xdark.jlinker;
  *
  * @author xDark
  */
-public final class Error<V> implements Result<V> {
+final class Error<V> implements Result<V> {
     private final ResolutionError error;
 
     /**
      * @param error
      *      Error.
      */
-    public Error(ResolutionError error) {
+    Error(ResolutionError error) {
         this.error = error;
     }
 
     @Override
     public V value() {
-        throw new UnsupportedOperationException(error.name());
+        throw new IllegalStateException(error.name());
     }
 
     @Override

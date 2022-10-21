@@ -41,6 +41,9 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
             return Result.error(ResolutionError.CLASS_MUST_NOT_BE_INTERFACE);
         }
         Resolution<C, M> method = uncachedLookupMethod(owner, name, descriptor);
+        if (method == null) {
+            method = uncachedInterfaceMethod(owner, name, descriptor);
+        }
         if (method != null) {
             int flags = method.member().accessFlags();
             if (Modifier.isStatic(flags)) {
@@ -76,6 +79,7 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
         while (owner != null) {
             field = (MemberInfo<F>) owner.getField(name, descriptor);
             if (field != null) {
+                info = owner;
                 break;
             }
             owner = owner.superClass();
@@ -128,9 +132,11 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
             while ((owner = arena.poll()) != null) {
                 MemberInfo<M> member = (MemberInfo<M>) owner.getMethod(name, descriptor);
                 if (member != null) {
-                    candidate = new Resolution<>(owner, member, false);
                     if (!Modifier.isAbstract(member.accessFlags())) {
-                        return candidate;
+                        return new Resolution<>(owner, member, false);
+                    }
+                    if (candidate == null) {
+                        candidate = new Resolution<>(owner, member, false);
                     }
                 }
                 arena.push(owner.interfaces());

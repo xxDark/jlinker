@@ -5,13 +5,13 @@ package dev.xdark.jlinker;
  *
  * @author xDark
  */
-public final class Success<V> implements Result<V> {
+final class Success<V> implements Result<V> {
     private final V value;
 
     /**
      * @param value Value.
      */
-    public Success(V value) {
+    Success(V value) {
         this.value = value;
     }
 
