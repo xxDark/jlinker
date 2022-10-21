@@ -85,19 +85,33 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
             owner = owner.superClass();
         }
         if (field == null) {
+            // Field wasn't found in super classes, iterate over all interfaces
             try (Arena<ClassInfo<C>> arena = classArenaAllocator.push()) {
-                arena.push(info.interfaces());
+                arena.push(info); // Push interface/class to the arena
                 while ((info = arena.poll()) != null) {
-                    field = (MemberInfo<F>) info.getField(name, descriptor);
-                    if (field != null) {
-                        break;
+                    if (Modifier.isInterface(info.accessFlags())) {
+                        // Only check field if it's an interface.
+                        field = (MemberInfo<F>) info.getField(name, descriptor);
+                        if (field != null) {
+                            break;
+                        }
+                    } else {
+                        // Push super class for later check of it's interfaces too,
+                        ClassInfo<C> superClass = info.superClass();
+                        if (superClass != null) {
+                            arena.push(superClass);
+                        }
                     }
+                    // Push sub-interfaces of the class
                     arena.push(info.interfaces());
                 }
             }
         }
         if (field == null) {
             return Result.error(ResolutionError.NO_SUCH_FIELD);
+        }
+        if (!Modifier.isStatic(field.accessFlags())) {
+            return Result.error(ResolutionError.FIELD_NOT_STATIC);
         }
         return Result.ok(new Resolution<>(info, field, false));
     }
@@ -106,8 +120,11 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
     public Result<Resolution<C, F>> resolveVirtualField(ClassInfo<C> owner, String name, String descriptor) {
         while (owner != null) {
             MemberInfo<F> field = (MemberInfo<F>) owner.getField(name, descriptor);
-            if (field != null && !Modifier.isStatic(field.accessFlags())) {
-                return Result.ok(new Resolution<>(owner, field, false));
+            if (field != null) {
+                if (!Modifier.isStatic(field.accessFlags())) {
+                    return Result.ok(new Resolution<>(owner, field, false));
+                }
+                return Result.error(ResolutionError.FIELD_NOT_VIRTUAL);
             }
             owner = owner.superClass();
         }

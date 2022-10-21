@@ -49,6 +49,8 @@ public class LinkResolverTest {
     public void testStaticField() {
         doTest(DummyClass.class, "ALOAD", "I", Opcodes.class, LinkResolver::resolveStaticField);
         doTest(DummyClass.class, "value", "I", DummyClassBase.class, LinkResolver::resolveStaticField);
+        doTest(TrickyField.class, "ALOAD", "I", Opcodes.class, LinkResolver::resolveStaticField);
+        doTest(OpcodesB.class, "ALOAD", "I", Opcodes.class, LinkResolver::resolveStaticField);
     }
 
     @Test
@@ -56,6 +58,7 @@ public class LinkResolverTest {
         doTest(ArrayList.class, "size", "I", ArrayList.class, LinkResolver::resolveVirtualField);
         doTest(InstanceA.class, "field", "J", InstanceA.class, LinkResolver::resolveVirtualField);
         doTest(InstanceB.class, "field", "J", InstanceA.class, LinkResolver::resolveVirtualField);
+        doTest(TrickyField.class, "ASTORE", "I", TrickyField.class, LinkResolver::resolveVirtualField);
     }
 
     private void doTest(String owner, String name, String desc, String expected, Resolve<MethodNode> resolve) {
@@ -99,5 +102,19 @@ public class LinkResolverTest {
     }
 
     private static final class DummyClass extends DummyClassBase implements Opcodes {
+    }
+
+    private static final class TrickyField implements Opcodes {
+        int ASTORE;
+    }
+
+    private interface Iface {
+        int X = Integer.valueOf(5);
+    }
+
+    private static class OpcodesA implements Opcodes, Iface {
+    }
+
+    private static final class OpcodesB extends OpcodesA {
     }
 }

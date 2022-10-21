@@ -12,7 +12,7 @@ public final class FrameArenaAllocator<T> implements ArenaAllocator<T> {
 
     private int[] frames = new int[16];
     private int frameIndex;
-    private final Impl<T> impl = new Impl<>();
+    private final Impl impl = new Impl();
 
     @Override
     public Arena<T> push() {
@@ -23,12 +23,12 @@ public final class FrameArenaAllocator<T> implements ArenaAllocator<T> {
             frames = Arrays.copyOf(frames, nextFrame + 16);
             this.frames = frames;
         }
-        Impl<T> impl = this.impl;
+        Impl impl = this.impl;
         frames[nextFrame] = impl.index;
         return impl;
     }
 
-    private final class Impl<T> implements Arena<T> {
+    private final class Impl implements Arena<T> {
 
         private T[] cache = (T[]) EMPTY_ARRAY;
         private int index;
