@@ -1,5 +1,7 @@
 package dev.xdark.jlinker;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Success result.
  *
@@ -16,12 +18,12 @@ final class Success<V> implements Result<V> {
     }
 
     @Override
-    public V value() {
+    public @NotNull V value() {
         return value;
     }
 
     @Override
-    public ResolutionError error() {
+    public @NotNull ResolutionError error() {
         throw new UnsupportedOperationException();
     }
 

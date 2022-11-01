@@ -32,6 +32,7 @@ public class ArenaTest {
             try (Arena<String> arena2 = allocator.push()) {
                 arena2.push("2");
                 assertEquals("2", arena2.poll());
+                assertNull(arena1.poll());
             }
             assertEquals("1", arena1.poll());
             assertNull(arena1.poll());

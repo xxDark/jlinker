@@ -1,5 +1,7 @@
 package dev.xdark.jlinker;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Result.
  *
@@ -10,12 +12,12 @@ public interface Result<V> {
     /**
      * @return Value.
      */
-    V value();
+    @NotNull V value();
 
     /**
      * @return Error, if action had failed.
      */
-    ResolutionError error();
+    @NotNull ResolutionError error();
 
     /**
      * @return Whether the action performed successfully.
@@ -29,11 +31,11 @@ public interface Result<V> {
         return !isSuccess();
     }
 
-    static <V> Result<V> ok(V value) {
+    static <V> Result<V> ok(@NotNull V value) {
         return new Success<>(value);
     }
 
-    static <V> Result<V> error(ResolutionError error) {
+    static <V> Result<V> error(@NotNull ResolutionError error) {
         return new Error<>(error);
     }
 }

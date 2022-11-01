@@ -1,5 +1,7 @@
 package dev.xdark.jlinker;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.reflect.Modifier;
 
 final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
@@ -13,7 +15,7 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
     }
 
     @Override
-    public Result<Resolution<C, M>> resolveStaticMethod(ClassInfo<C> owner, String name, String descriptor, boolean itf) {
+    public Result<Resolution<C, M>> resolveStaticMethod(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor, boolean itf) {
         Resolution<C, M> method;
         if (itf) {
             if (!Modifier.isInterface(owner.accessFlags())) {
@@ -27,7 +29,7 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
             if (!Modifier.isStatic(method.member().accessFlags())) {
                 return Result.error(ResolutionError.METHOD_NOT_STATIC);
             }
-            if (!method.forced() && itf != Modifier.isInterface(method.owner().accessFlags())) {
+            if (itf != Modifier.isInterface(method.owner().accessFlags())) {
                 return Result.error(ResolutionError.CLASS_MUST_BE_INTERFACE);
             }
             return Result.ok(method);
@@ -36,7 +38,7 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
     }
 
     @Override
-    public Result<Resolution<C, M>> resolveVirtualMethod(ClassInfo<C> owner, String name, String descriptor) {
+    public Result<Resolution<C, M>> resolveVirtualMethod(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor) {
         if (Modifier.isInterface(owner.accessFlags())) {
             return Result.error(ResolutionError.CLASS_MUST_NOT_BE_INTERFACE);
         }
@@ -58,7 +60,7 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
     }
 
     @Override
-    public Result<Resolution<C, M>> resolveInterfaceMethod(ClassInfo<C> owner, String name, String descriptor) {
+    public Result<Resolution<C, M>> resolveInterfaceMethod(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor) {
         if (!Modifier.isInterface(owner.accessFlags())) {
             return Result.error(ResolutionError.CLASS_MUST_BE_INTERFACE);
         }
@@ -73,7 +75,7 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
     }
 
     @Override
-    public Result<Resolution<C, F>> resolveStaticField(ClassInfo<C> owner, String name, String descriptor) {
+    public Result<Resolution<C, F>> resolveStaticField(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor) {
         ClassInfo<C> info = owner;
         MemberInfo<F> field = null;
         while (owner != null) {
@@ -85,26 +87,12 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
             owner = owner.superClass();
         }
         if (field == null) {
-            // Field wasn't found in super classes, iterate over all interfaces
-            try (Arena<ClassInfo<C>> arena = classArenaAllocator.push()) {
-                arena.push(info); // Push interface/class to the arena
-                while ((info = arena.poll()) != null) {
-                    if (Modifier.isInterface(info.accessFlags())) {
-                        // Only check field if it's an interface.
-                        field = (MemberInfo<F>) info.getField(name, descriptor);
-                        if (field != null) {
-                            break;
-                        }
-                    } else {
-                        // Push super class for later check of it's interfaces too,
-                        ClassInfo<C> superClass = info.superClass();
-                        if (superClass != null) {
-                            arena.push(superClass);
-                        }
-                    }
-                    // Push sub-interfaces of the class
-                    arena.push(info.interfaces());
+            Resolution<C, F> resolution = uncachedInterfaceLookup(info, name, descriptor, false, ClassInfo::getField);
+            if (resolution != null) {
+                if (!Modifier.isStatic(resolution.member().accessFlags())) {
+                    return Result.error(ResolutionError.FIELD_NOT_STATIC);
                 }
+                return Result.ok(resolution);
             }
         }
         if (field == null) {
@@ -117,7 +105,7 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
     }
 
     @Override
-    public Result<Resolution<C, F>> resolveVirtualField(ClassInfo<C> owner, String name, String descriptor) {
+    public Result<Resolution<C, F>> resolveVirtualField(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor) {
         while (owner != null) {
             MemberInfo<F> field = (MemberInfo<F>) owner.getField(name, descriptor);
             if (field != null) {
@@ -143,28 +131,13 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
 
     Resolution<C, M> uncachedInterfaceMethod(ClassInfo<C> owner, String name, String descriptor) {
         ClassInfo<C> info = owner;
-        try (Arena<ClassInfo<C>> arena = classArenaAllocator.push()) {
-            arena.push(owner);
-            Resolution<C, M> candidate = null;
-            while ((owner = arena.poll()) != null) {
-                MemberInfo<M> member = (MemberInfo<M>) owner.getMethod(name, descriptor);
-                if (member != null) {
-                    if (!Modifier.isAbstract(member.accessFlags())) {
-                        return new Resolution<>(owner, member, false);
-                    }
-                    if (candidate == null) {
-                        candidate = new Resolution<>(owner, member, false);
-                    }
-                }
-                arena.push(owner.interfaces());
-            }
-            if (candidate != null) {
-                return candidate;
-            }
+        Resolution<C, M> resolution = uncachedInterfaceLookup(owner, name, descriptor, true, ClassInfo::getMethod);
+        if (resolution != null) {
+            return resolution;
         }
-        // We have corner case when a compiler can generate interface call
-        // to java/lang/Object. This cannot happen with javac, but the spec
-        // allows so.
+        // We have corner case when we have an interface
+        // that looks like that:
+        // interface Foo { int hashCode(); }
         // TODO optimize
         info = info.superClass();
         while (info != null) {
@@ -182,5 +155,40 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
             }
         }
         return member == null ? null : new Resolution<>(info, member, true);
+    }
+
+    private <V> Resolution<C, V> uncachedInterfaceLookup(ClassInfo<C> info, String name, String desc, boolean guessAbstract, UncachedResolve resolve) {
+        Resolution<C, V> guess = null;
+        try (Arena<ClassInfo<C>> arena = classArenaAllocator.push()) {
+            arena.push(info); // Push interface/class to the arena
+            while ((info = arena.poll()) != null) {
+                if (Modifier.isInterface(info.accessFlags())) {
+                    // Only check field if it's an interface.
+                    MemberInfo<V> value = (MemberInfo<V>) resolve.find(info, name, desc);
+                    if (value != null) {
+                        Resolution<C, V> resolution = new Resolution<>(info, value, false);
+                        if (!guessAbstract || !Modifier.isAbstract(value.accessFlags())) {
+                            return resolution;
+                        }
+                        if (guess == null) {
+                            guess = resolution;
+                        }
+                    }
+                } else {
+                    // Push super class for later check of it's interfaces too.
+                    ClassInfo<C> superClass = info.superClass();
+                    if (superClass != null) {
+                        arena.push(superClass);
+                    }
+                }
+                // Push sub-interfaces of the class
+                arena.push(info.interfaces());
+            }
+        }
+        return guess;
+    }
+
+    private interface UncachedResolve {
+        MemberInfo<?> find(ClassInfo<?> info, String name, String desc);
     }
 }

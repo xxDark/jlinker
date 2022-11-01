@@ -1,5 +1,7 @@
 package dev.xdark.jlinker;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Error result.
  *
@@ -17,12 +19,12 @@ final class Error<V> implements Result<V> {
     }
 
     @Override
-    public V value() {
+    public @NotNull V value() {
         throw new IllegalStateException(error.name());
     }
 
     @Override
-    public ResolutionError error() {
+    public @NotNull ResolutionError error() {
         return error;
     }
 

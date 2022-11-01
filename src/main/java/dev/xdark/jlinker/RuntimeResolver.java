@@ -1,5 +1,7 @@
 package dev.xdark.jlinker;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Runtime resolver.
  *
@@ -16,7 +18,7 @@ public interface RuntimeResolver<C, M> {
      * @param itf        Whether the owner is an interface class.
      * @return Resolution result.
      */
-    Result<Resolution<C, M>> resolveStaticMethod(ClassInfo<C> owner, String name, String descriptor, boolean itf);
+    @NotNull Result<Resolution<C, M>> resolveStaticMethod(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor, boolean itf);
 
     /**
      * Resolves virtual method.
@@ -26,7 +28,7 @@ public interface RuntimeResolver<C, M> {
      * @param descriptor Method descriptor.
      * @return Resolution result.
      */
-    Result<Resolution<C, M>> resolveVirtualMethod(ClassInfo<C> owner, String name, String descriptor);
+    @NotNull Result<Resolution<C, M>> resolveVirtualMethod(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor);
 
     /**
      * Resolves interface method.
@@ -36,7 +38,7 @@ public interface RuntimeResolver<C, M> {
      * @param descriptor Method descriptor.
      * @return Resolution result.
      */
-    Result<Resolution<C, M>> resolveInterfaceMethod(ClassInfo<C> owner, String name, String descriptor);
+    @NotNull Result<Resolution<C, M>> resolveInterfaceMethod(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor);
 
     /**
      * @param linkResolver JVM link resolver.

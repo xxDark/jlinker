@@ -1,5 +1,8 @@
 package dev.xdark.jlinker;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Closeable;
 import java.util.Collection;
 
@@ -13,11 +16,20 @@ import java.util.Collection;
  */
 public interface Arena<T> extends Closeable {
 
-    void push(T value);
+    /**
+     * @param value Value to push.
+     */
+    void push(@NotNull T value);
 
-    T poll();
+    /**
+     * @return Top value or {@code null}.
+     */
+    @Nullable T poll();
 
-    default void push(Collection<? extends T> c) {
+    /**
+     * @param c Collection of values to push.
+     */
+    default void push(@NotNull Collection<? extends T> c) {
         if (!c.isEmpty()) {
             for (T t : c) {
                 push(t);

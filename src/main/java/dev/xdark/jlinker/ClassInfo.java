@@ -1,5 +1,8 @@
 package dev.xdark.jlinker;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 
 /**
@@ -23,12 +26,12 @@ public interface ClassInfo<C> {
     /**
      * @return Parent class.
      */
-    ClassInfo<C> superClass();
+    @NotNull ClassInfo<C> superClass();
 
     /**
      * @return Class interfaces.
      */
-    List<ClassInfo<C>> interfaces();
+    @NotNull List<@NotNull ClassInfo<C>> interfaces();
 
     /**
      * Implementation may throw any exception.
@@ -37,7 +40,7 @@ public interface ClassInfo<C> {
      * @param descriptor Method descriptor.
      * @return Class method.
      */
-    MemberInfo<?> getMethod(String name, String descriptor);
+    @Nullable MemberInfo<?> getMethod(String name, String descriptor);
 
     /**
      * Implementation may throw any exception.
@@ -46,5 +49,5 @@ public interface ClassInfo<C> {
      * @param descriptor Field descriptor.
      * @return Class field.
      */
-    MemberInfo<?> getField(String name, String descriptor);
+    @Nullable MemberInfo<?> getField(String name, String descriptor);
 }

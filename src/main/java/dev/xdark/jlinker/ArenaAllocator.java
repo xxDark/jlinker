@@ -1,5 +1,7 @@
 package dev.xdark.jlinker;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Arena allocator.
  *
@@ -10,5 +12,5 @@ public interface ArenaAllocator<T> {
     /**
      * @return Allocated arena.
      */
-    Arena<T> push();
+    @NotNull Arena<T> push();
 }

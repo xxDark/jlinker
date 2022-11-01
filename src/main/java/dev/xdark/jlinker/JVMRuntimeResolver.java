@@ -1,5 +1,7 @@
 package dev.xdark.jlinker;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.reflect.Modifier;
 
 final class JVMRuntimeResolver<C, M> implements RuntimeResolver<C, M> {
@@ -10,13 +12,13 @@ final class JVMRuntimeResolver<C, M> implements RuntimeResolver<C, M> {
     }
 
     @Override
-    public Result<Resolution<C, M>> resolveStaticMethod(ClassInfo<C> owner, String name, String descriptor, boolean itf) {
+    public @NotNull Result<Resolution<C, M>> resolveStaticMethod(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor, boolean itf) {
         // Here we can just delegate to link resolver
         return linkResolver.resolveStaticMethod(owner, name, descriptor, itf);
     }
 
     @Override
-    public Result<Resolution<C, M>> resolveVirtualMethod(ClassInfo<C> owner, String name, String descriptor) {
+    public @NotNull Result<Resolution<C, M>> resolveVirtualMethod(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor) {
         Result<Resolution<C, M>> result = linkResolver.resolveVirtualMethod(owner, name, descriptor);
         if (result.isSuccess()) {
             if (Modifier.isAbstract(result.value().member().accessFlags())) {
@@ -27,7 +29,7 @@ final class JVMRuntimeResolver<C, M> implements RuntimeResolver<C, M> {
     }
 
     @Override
-    public Result<Resolution<C, M>> resolveInterfaceMethod(ClassInfo<C> owner, String name, String descriptor) {
+    public @NotNull Result<Resolution<C, M>> resolveInterfaceMethod(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor) {
         // No checks, should be done by LinkResolver
         // linkResolver must be JVMLinkResolver
         Resolution<C, M> resolution = ((JVMLinkResolver) linkResolver).uncachedLookupMethod(owner, name, descriptor);

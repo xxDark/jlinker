@@ -1,5 +1,6 @@
 package dev.xdark.jlinker;
 
+import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -58,13 +59,13 @@ final class RuntimeAsmProvider {
             }
 
             @Override
-            public ClassInfo<ClassNode> superClass() {
+            public @NotNull ClassInfo<ClassNode> superClass() {
                 String name = node.superName;
                 return name == null ? null : findClass(name);
             }
 
             @Override
-            public List<ClassInfo<ClassNode>> interfaces() {
+            public @NotNull List<ClassInfo<ClassNode>> interfaces() {
                 return node.interfaces.stream().map(RuntimeAsmProvider.this::findClass).collect(Collectors.toList());
             }
 

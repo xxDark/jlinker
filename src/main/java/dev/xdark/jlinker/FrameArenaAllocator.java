@@ -1,5 +1,7 @@
 package dev.xdark.jlinker;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Arrays;
 
 /**
@@ -15,7 +17,7 @@ public final class FrameArenaAllocator<T> implements ArenaAllocator<T> {
     private final Impl impl = new Impl();
 
     @Override
-    public Arena<T> push() {
+    public @NotNull Arena<T> push() {
         // Push new frame.
         int[] frames = this.frames;
         int nextFrame = frameIndex++;
@@ -34,7 +36,7 @@ public final class FrameArenaAllocator<T> implements ArenaAllocator<T> {
         private int index;
 
         @Override
-        public void push(T value) {
+        public void push(@NotNull T value) {
             T[] cache = this.cache;
             int index = this.index++;
             if (index == cache.length) {
