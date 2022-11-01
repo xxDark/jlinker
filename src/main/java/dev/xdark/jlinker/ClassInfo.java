@@ -26,7 +26,7 @@ public interface ClassInfo<C> {
     /**
      * @return Parent class.
      */
-    @NotNull ClassInfo<C> superClass();
+    @Nullable ClassInfo<C> superClass();
 
     /**
      * @return Class interfaces.

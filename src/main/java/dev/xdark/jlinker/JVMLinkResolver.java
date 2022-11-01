@@ -147,6 +147,10 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
             }
             info = superClass;
         }
+        // Null in case info is java/lang/Object or an annotation (?), apparently
+        if (info == null) {
+            return null;
+        }
         MemberInfo<M> member = (MemberInfo<M>) info.getMethod(name, descriptor);
         if (member != null) {
             int accessFlags = member.accessFlags();
