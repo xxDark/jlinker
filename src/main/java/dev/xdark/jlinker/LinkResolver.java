@@ -35,6 +35,29 @@ public interface LinkResolver<C, M, F> {
     }
 
     /**
+     * Resolves special method.
+     *
+     * @param owner      Method owner.
+     * @param name       Method name.
+     * @param descriptor Method descriptor.
+     * @param itf        Whether the owner is an interface class.
+     * @return Resolution result.
+     */
+    Result<Resolution<C, M>> resolveSpecialMethod(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor, boolean itf);
+
+    /**
+     * Resolves special method.
+     *
+     * @param owner      Method owner.
+     * @param name       Method name.
+     * @param descriptor Method descriptor.
+     * @return Resolution result.
+     */
+    default Result<Resolution<C, M>> resolveSpecialMethod(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor) {
+        return resolveSpecialMethod(owner, name, descriptor, Modifier.isInterface(owner.accessFlags()));
+    }
+
+    /**
      * Resolves virtual method.
      *
      * @param owner      Method owner.

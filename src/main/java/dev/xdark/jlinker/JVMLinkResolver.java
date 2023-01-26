@@ -38,6 +38,15 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
     }
 
     @Override
+    public Result<Resolution<C, M>> resolveSpecialMethod(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor, boolean itf) {
+        if (Modifier.isInterface(owner.accessFlags()) != itf) {
+            return Result.error(itf ? ResolutionError.CLASS_MUST_BE_INTERFACE : ResolutionError.CLASS_MUST_NOT_BE_INTERFACE);
+        }
+        Resolution<C, M> method = itf ? uncachedInterfaceMethod(owner, name, descriptor) : uncachedLookupMethod(owner, name, descriptor);
+        return checkVirtualMethod(method);
+    }
+
+    @Override
     public Result<Resolution<C, M>> resolveVirtualMethod(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor) {
         if (Modifier.isInterface(owner.accessFlags())) {
             return Result.error(ResolutionError.CLASS_MUST_NOT_BE_INTERFACE);
@@ -46,17 +55,7 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
         if (method == null) {
             method = uncachedInterfaceMethod(owner, name, descriptor);
         }
-        if (method != null) {
-            int flags = method.member().accessFlags();
-            if (Modifier.isStatic(flags)) {
-                return Result.error(ResolutionError.METHOD_NOT_VIRTUAL);
-            }
-            if (Modifier.isAbstract(flags) && !Modifier.isAbstract(method.owner().accessFlags())) {
-                return Result.error(ResolutionError.CLASS_NOT_ABSTRACT);
-            }
-            return Result.ok(method);
-        }
-        return Result.error(ResolutionError.NO_SUCH_METHOD);
+        return checkVirtualMethod(method);
     }
 
     @Override
@@ -190,6 +189,21 @@ final class JVMLinkResolver<C, M, F> implements LinkResolver<C, M, F> {
             }
         }
         return guess;
+    }
+
+    @NotNull
+    private Result<Resolution<C, M>> checkVirtualMethod(Resolution<C, M> method) {
+        if (method != null) {
+            int flags = method.member().accessFlags();
+            if (Modifier.isStatic(flags)) {
+                return Result.error(ResolutionError.METHOD_NOT_VIRTUAL);
+            }
+            if (Modifier.isAbstract(flags) && !Modifier.isAbstract(method.owner().accessFlags())) {
+                return Result.error(ResolutionError.CLASS_NOT_ABSTRACT);
+            }
+            return Result.ok(method);
+        }
+        return Result.error(ResolutionError.NO_SUCH_METHOD);
     }
 
     private interface UncachedResolve {
