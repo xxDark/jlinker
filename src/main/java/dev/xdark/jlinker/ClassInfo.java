@@ -35,7 +35,7 @@ public interface ClassInfo {
      * @param descriptor Method descriptor.
      * @return Class method.
      */
-    @Nullable MethodInfo getMethod(String name, Descriptor descriptor);
+    @Nullable MethodInfo getMethod(String name, MethodDescriptor descriptor);
 
     /**
      * Implementation may throw any exception.
@@ -44,5 +44,5 @@ public interface ClassInfo {
      * @param descriptor Field descriptor.
      * @return Class field.
      */
-    @Nullable FieldInfo getField(String name, Descriptor descriptor);
+    @Nullable FieldInfo getField(String name, FieldDescriptor descriptor);
 }

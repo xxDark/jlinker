@@ -35,7 +35,7 @@ final class MyClassInfo implements ClassInfo {
 	}
 
 	@Override
-	public @Nullable MethodInfo getMethod(String name, Descriptor descriptor) {
+	public @Nullable MethodInfo getMethod(String name, MethodDescriptor descriptor) {
 		String descriptorString = descriptor.toString();
 		for (MethodNode m : node.methods) {
 			if (name.equals(m.name) && descriptorString.equals(m.desc)) {
@@ -46,7 +46,7 @@ final class MyClassInfo implements ClassInfo {
 	}
 
 	@Override
-	public @Nullable FieldInfo getField(String name, Descriptor descriptor) {
+	public @Nullable FieldInfo getField(String name, FieldDescriptor descriptor) {
 		String descriptorString = descriptor.toString();
 		for (FieldNode f : node.fields) {
 			if (name.equals(f.name) && descriptorString.equals(f.desc)) {
