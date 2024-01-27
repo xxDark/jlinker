@@ -6,20 +6,15 @@ package dev.xdark.jlinker;
  *
  * @author xDark
  */
-public interface MemberInfo<V> {
+public interface MemberInfo {
 
     /**
-     * @return Inner value, e.g. ASM MethodNode/FieldNode.
+     * @return Member owner
      */
-    V innerValue();
+    ClassInfo getOwner();
 
     /**
      * @return Member access flags.
      */
-    int accessFlags();
-
-    /**
-     * @return Whether this member is a polymorphic member.
-     */
-    boolean isPolymorphic();
+    int getAccessFlags();
 }

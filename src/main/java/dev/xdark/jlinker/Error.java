@@ -1,35 +1,30 @@
 package dev.xdark.jlinker;
 
-import org.jetbrains.annotations.NotNull;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
-/**
- * Error result.
- *
- * @author xDark
- */
-final class Error<V> implements Result<V> {
-    private final ResolutionError error;
+public final class Error<V> implements Result<V> {
+	private static final List<Error<?>> ERRORS = Arrays.stream(FailureReason.values())
+			.map(Error::new)
+			.collect(Collectors.toList());
+	private final FailureReason reason;
 
-    /**
-     * @param error
-     *      Error.
-     */
-    Error(ResolutionError error) {
-        this.error = error;
-    }
+	Error(FailureReason reason) {
+		this.reason = reason;
+	}
 
-    @Override
-    public @NotNull V value() {
-        throw new IllegalStateException(error.name());
-    }
+	@Override
+	public V getValue() {
+		throw new UnsupportedOperationException();
+	}
 
-    @Override
-    public @NotNull ResolutionError error() {
-        return error;
-    }
+	@Override
+	public FailureReason getFailureReason() {
+		return reason;
+	}
 
-    @Override
-    public boolean isSuccess() {
-        return false;
-    }
+	static <V> Error<V> of(FailureReason reason) {
+		return (Error<V>) ERRORS.get(reason.ordinal());
+	}
 }

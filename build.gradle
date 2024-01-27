@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'dev.xdark'
-version '1.0.7'
+version '2.0.0'
 
 repositories {
     mavenCentral()
@@ -20,7 +20,7 @@ sourceSets {
 }
 
 dependencies {
-    def junitVersion = '5.9.2'
+    def junitVersion = '5.10.1'
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
     testImplementation "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junitVersion"
@@ -28,11 +28,12 @@ dependencies {
     testImplementation 'org.ow2.asm:asm:9.5'
     testImplementation 'org.ow2.asm:asm-tree:9.5'
 
-    compileOnly 'org.jetbrains:annotations:24.0.1'
-    testCompileOnly 'org.jetbrains:annotations:23.0.0'
+    def annotationsVersion = '24.1.0'
+    compileOnly "org.jetbrains:annotations:$annotationsVersion"
+    testCompileOnly "org.jetbrains:annotations:$annotationsVersion"
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.compilerArgs.addAll(['-parameters', '-g:lines,source,vars'])
 }
 
@@ -61,10 +62,9 @@ test {
     useJUnitPlatform()
 }
 
-task sourcesJar(type: Jar) {
-    from sourceSets.main.java
-    from sourceSets.java11.java
-    classifier = 'sources'
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 publishing {

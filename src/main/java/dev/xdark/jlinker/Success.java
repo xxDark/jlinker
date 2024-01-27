@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author xDark
  */
-final class Success<V> implements Result<V> {
+public final class Success<V> implements Result<V> {
     private final V value;
 
     /**
@@ -18,17 +18,12 @@ final class Success<V> implements Result<V> {
     }
 
     @Override
-    public @NotNull V value() {
+    public @NotNull V getValue() {
         return value;
     }
 
     @Override
-    public @NotNull ResolutionError error() {
+    public @NotNull FailureReason getFailureReason() {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isSuccess() {
-        return true;
     }
 }

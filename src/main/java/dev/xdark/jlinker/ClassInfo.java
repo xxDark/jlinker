@@ -11,27 +11,22 @@ import java.util.List;
  *
  * @author xDark
  */
-public interface ClassInfo<C> {
-
-    /**
-     * @return Inner value, e.g. ASM ClassNode.
-     */
-    C innerValue();
+public interface ClassInfo {
 
     /**
      * @return Class access flags.
      */
-    int accessFlags();
+    int getAccessFlags();
 
     /**
      * @return Parent class.
      */
-    @Nullable ClassInfo<C> superClass();
+    @Nullable ClassInfo getSuperclass();
 
     /**
      * @return Class interfaces.
      */
-    @NotNull List<@NotNull ClassInfo<C>> interfaces();
+    @NotNull List<? extends @NotNull ClassInfo> getInterfaces();
 
     /**
      * Implementation may throw any exception.
@@ -40,7 +35,7 @@ public interface ClassInfo<C> {
      * @param descriptor Method descriptor.
      * @return Class method.
      */
-    @Nullable MemberInfo<?> getMethod(String name, String descriptor);
+    @Nullable MethodInfo getMethod(String name, Descriptor descriptor);
 
     /**
      * Implementation may throw any exception.
@@ -49,5 +44,5 @@ public interface ClassInfo<C> {
      * @param descriptor Field descriptor.
      * @return Class field.
      */
-    @Nullable MemberInfo<?> getField(String name, String descriptor);
+    @Nullable FieldInfo getField(String name, Descriptor descriptor);
 }

@@ -4,48 +4,58 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Modifier;
 
-final class JVMRuntimeResolver<C, M> implements RuntimeResolver<C, M> {
-    private final LinkResolver<C, M, ?> linkResolver;
+final class JVMRuntimeResolver implements RuntimeResolver {
+    private final LinkResolver linkResolver;
 
-    JVMRuntimeResolver(LinkResolver<C, M, ?> linkResolver) {
+    JVMRuntimeResolver(LinkResolver linkResolver) {
         this.linkResolver = linkResolver;
     }
 
     @Override
-    public @NotNull Result<Resolution<C, M>> resolveStaticMethod(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor, boolean itf) {
+    public @NotNull Result<MethodInfo> resolveStaticMethod(@NotNull ClassInfo owner, @NotNull String name, @NotNull MethodDescriptor descriptor, boolean itf) {
         // Here we can just delegate to link resolver
         return linkResolver.resolveStaticMethod(owner, name, descriptor, itf);
     }
 
     @Override
-    public @NotNull Result<Resolution<C, M>> resolveVirtualMethod(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor) {
-        Result<Resolution<C, M>> result = linkResolver.resolveVirtualMethod(owner, name, descriptor);
-        if (result.isSuccess()) {
-            if (Modifier.isAbstract(result.value().member().accessFlags())) {
-                return Result.error(ResolutionError.METHOD_IS_ABSTRACT);
+    public @NotNull Result<MethodInfo> resolveVirtualMethod(@NotNull ClassInfo owner, @NotNull String name, @NotNull MethodDescriptor descriptor) {
+        Result<MethodInfo> result = linkResolver.resolveVirtualMethod(owner, name, descriptor);
+        if (result instanceof Success) {
+            if (Modifier.isAbstract(result.getValue().getAccessFlags())) {
+                return Error.of(FailureReason.ACC_ABSTRACT_SET);
             }
         }
         return result;
     }
 
     @Override
-    public @NotNull Result<Resolution<C, M>> resolveInterfaceMethod(@NotNull ClassInfo<C> owner, @NotNull String name, @NotNull String descriptor) {
+    public @NotNull Result<MethodInfo> resolveInterfaceMethod(@NotNull ClassInfo owner, @NotNull String name, @NotNull MethodDescriptor descriptor) {
         // No checks, should be done by LinkResolver
         // linkResolver must be JVMLinkResolver
-        Resolution<C, M> resolution = ((JVMLinkResolver) linkResolver).uncachedLookupMethod(owner, name, descriptor);
-        if (resolution == null) {
-            resolution = ((JVMLinkResolver) linkResolver).uncachedInterfaceMethod(owner, name, descriptor);
+        MethodInfo method = ((JVMLinkResolver) linkResolver).uncachedLookupMethod(owner, name, descriptor);
+        if (method == null) {
+            method = ((JVMLinkResolver) linkResolver).uncachedInterfaceMethod(owner, name, descriptor);
         }
-        if (resolution != null) {
-            int accessFlags = resolution.member().accessFlags();
+        if (method != null) {
+            int accessFlags = method.getAccessFlags();
             if (Modifier.isStatic(accessFlags)) {
-                return Result.error(ResolutionError.METHOD_NOT_VIRTUAL);
+                return Error.of(FailureReason.ACC_STATIC_SET);
             }
             if (Modifier.isAbstract(accessFlags)) {
-                return Result.error(ResolutionError.METHOD_IS_ABSTRACT);
+                return Error.of(FailureReason.ACC_ABSTRACT_SET);
             }
-            return Result.ok(resolution);
+            return new Success<>(method);
         }
-        return Result.error(ResolutionError.NO_SUCH_METHOD);
+        return Error.of(FailureReason.NO_SUCH_METHOD);
+    }
+
+    @Override
+    public @NotNull Result<FieldInfo> resolveStaticField(@NotNull ClassInfo owner, @NotNull String name, @NotNull FieldDescriptor descriptor) {
+        return linkResolver.resolveStaticField(owner, name, descriptor);
+    }
+
+    @Override
+    public @NotNull Result<FieldInfo> resolveVirtualField(@NotNull ClassInfo owner, @NotNull String name, @NotNull FieldDescriptor descriptor) {
+        return linkResolver.resolveVirtualField(owner, name, descriptor);
     }
 }
