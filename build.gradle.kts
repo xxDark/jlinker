@@ -34,3 +34,17 @@ java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
     withSourcesJar()
 }
+
+publishing {
+    publications.create<MavenPublication>("maven") {
+        groupId = project.group.toString()
+        artifactId = project.name
+        version = project.version.toString()
+        pom {
+            name = "jlinker"
+            description = "Java member resolution library"
+        }
+
+        from(components["java"])
+    }
+}
