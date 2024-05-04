@@ -1,5 +1,6 @@
 package dev.xdark.jlinker;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Modifier;
@@ -20,6 +21,7 @@ public interface LinkResolver {
 	 * @param itf        Whether the owner is an interface class.
 	 * @return Resolution result.
 	 */
+	@NotNull
 	Result<MethodInfo> resolveStaticMethod(@NotNull ClassInfo owner, @NotNull String name, @NotNull MethodDescriptor descriptor, boolean itf);
 
 	/**
@@ -30,6 +32,7 @@ public interface LinkResolver {
 	 * @param descriptor Method descriptor.
 	 * @return Resolution result.
 	 */
+	@NotNull
 	default Result<MethodInfo> resolveStaticMethod(@NotNull ClassInfo owner, @NotNull String name, @NotNull MethodDescriptor descriptor) {
 		return resolveStaticMethod(owner, name, descriptor, Modifier.isInterface(owner.getAccessFlags()));
 	}
@@ -43,6 +46,7 @@ public interface LinkResolver {
 	 * @param itf        Whether the owner is an interface class.
 	 * @return Resolution result.
 	 */
+	@NotNull
 	Result<MethodInfo> resolveSpecialMethod(@NotNull ClassInfo owner, @NotNull String name, @NotNull MethodDescriptor descriptor, boolean itf);
 
 	/**
@@ -53,6 +57,7 @@ public interface LinkResolver {
 	 * @param descriptor Method descriptor.
 	 * @return Resolution result.
 	 */
+	@NotNull
 	default Result<MethodInfo> resolveSpecialMethod(@NotNull ClassInfo owner, @NotNull String name, @NotNull MethodDescriptor descriptor) {
 		return resolveSpecialMethod(owner, name, descriptor, Modifier.isInterface(owner.getAccessFlags()));
 	}
@@ -65,6 +70,7 @@ public interface LinkResolver {
 	 * @param descriptor Method descriptor.
 	 * @return Resolution result.
 	 */
+	@NotNull
 	Result<MethodInfo> resolveVirtualMethod(@NotNull ClassInfo owner, @NotNull String name, @NotNull MethodDescriptor descriptor);
 
 	/**
@@ -75,6 +81,7 @@ public interface LinkResolver {
 	 * @param descriptor Method descriptor.
 	 * @return Resolution result.
 	 */
+	@NotNull
 	Result<MethodInfo> resolveInterfaceMethod(@NotNull ClassInfo owner, @NotNull String name, @NotNull MethodDescriptor descriptor);
 
 	/**
@@ -85,6 +92,7 @@ public interface LinkResolver {
 	 * @param descriptor Field descriptor.
 	 * @return Resolution result.
 	 */
+	@NotNull
 	Result<FieldInfo> resolveStaticField(@NotNull ClassInfo owner, @NotNull String name, @NotNull FieldDescriptor descriptor);
 
 	/**
@@ -95,11 +103,14 @@ public interface LinkResolver {
 	 * @param descriptor Field descriptor.
 	 * @return Resolution result.
 	 */
+	@NotNull
 	Result<FieldInfo> resolveVirtualField(@NotNull ClassInfo owner, @NotNull String name, @NotNull FieldDescriptor descriptor);
 
 	/**
 	 * @return JVM link resolver.
 	 */
+	@NotNull
+	@Contract(pure = true)
 	static LinkResolver jvm() {
 		return new JVMLinkResolver();
 	}

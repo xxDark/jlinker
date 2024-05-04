@@ -61,7 +61,7 @@ public class LinkResolverTest {
 	private <M extends MemberInfo> void doTest(String owner, String name, String desc, String expected, Resolve<M> resolve) {
 		Result<M> result = resolve.resolve(linkResolver, provider.findClass(owner), name, new DescriptorString(desc));
 		testResult(result);
-		testMatch(result.getValue(), expected);
+		testMatch(result.value(), expected);
 	}
 
 	private <M extends MemberInfo> void doTest(Class<?> owner, String name, String desc, String expected, Resolve<M> resolve) {
@@ -74,7 +74,7 @@ public class LinkResolverTest {
 
 	private static void testResult(Result<?> result) {
 		if (result instanceof Error) {
-			fail(result.getFailureReason().name());
+			fail(result.failureReason().name());
 		}
 	}
 

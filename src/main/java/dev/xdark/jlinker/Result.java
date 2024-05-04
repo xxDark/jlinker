@@ -1,8 +1,25 @@
 package dev.xdark.jlinker;
 
-public interface Result<V> {
+import org.jetbrains.annotations.NotNull;
 
-	V getValue();
+/**
+ * Resolution result.
+ *
+ * @author xDark
+ */
+public sealed interface Result<V> permits Success, Error {
 
-	FailureReason getFailureReason();
+	/**
+	 * @return Resolution result.
+	 * @throws IllegalStateException If in error state.
+	 */
+	@NotNull
+	V value();
+
+	/**
+	 * @return Resolution result.
+	 * @throws IllegalStateException If in success state.
+	 */
+	@NotNull
+	FailureReason failureReason();
 }

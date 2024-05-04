@@ -26,7 +26,7 @@ public class RuntimeResolverTest {
 	private void doTest(String owner, String name, String desc, String expected, Resolve<MethodInfo> resolve) {
 		Result<MethodInfo> result = resolve.resolve(resolver, provider.findClass(owner), name, new DescriptorString(desc));
 		testResult(result);
-		testMatch(result.getValue(), expected);
+		testMatch(result.value(), expected);
 	}
 
 	private void doTest(Class<?> owner, String name, String desc, String expected, Resolve<MethodInfo> resolve) {
@@ -39,7 +39,7 @@ public class RuntimeResolverTest {
 
 	private static void testResult(Result<?> result) {
 		if (result instanceof Error) {
-			fail(result.getFailureReason().name());
+			fail(result.failureReason().name());
 		}
 	}
 

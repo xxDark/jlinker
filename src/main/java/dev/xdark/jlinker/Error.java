@@ -1,13 +1,14 @@
 package dev.xdark.jlinker;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public final class Error<V> implements Result<V> {
 	private static final List<Error<?>> ERRORS = Arrays.stream(FailureReason.values())
-			.map(Error::new)
-			.collect(Collectors.toList());
+			.<Error<?>>map(Error::new)
+			.toList();
 	private final FailureReason reason;
 
 	Error(FailureReason reason) {
@@ -15,16 +16,17 @@ public final class Error<V> implements Result<V> {
 	}
 
 	@Override
-	public V getValue() {
-		throw new UnsupportedOperationException();
+	public @NotNull V value() {
+		throw new IllegalStateException();
 	}
 
 	@Override
-	public FailureReason getFailureReason() {
+	public @NotNull FailureReason failureReason() {
 		return reason;
 	}
 
 	static <V> Error<V> of(FailureReason reason) {
+		//noinspection unchecked
 		return (Error<V>) ERRORS.get(reason.ordinal());
 	}
 }

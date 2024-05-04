@@ -18,12 +18,12 @@ public final class Success<V> implements Result<V> {
     }
 
     @Override
-    public @NotNull V getValue() {
+    public @NotNull V value() {
         return value;
     }
 
     @Override
-    public @NotNull FailureReason getFailureReason() {
-        throw new UnsupportedOperationException();
+    public @NotNull FailureReason failureReason() {
+        throw new IllegalStateException();
     }
 }

@@ -10,7 +10,7 @@ import java.util.Deque;
 final class JVMLinkResolver implements LinkResolver {
 
 	@Override
-	public Result<MethodInfo> resolveVirtualMethod(@NotNull ClassInfo info, @NotNull String name, @NotNull MethodDescriptor type) {
+	public @NotNull Result<MethodInfo> resolveVirtualMethod(@NotNull ClassInfo info, @NotNull String name, @NotNull MethodDescriptor type) {
 		if (Modifier.isInterface(info.getAccessFlags())) {
 			return Error.of(FailureReason.ACC_INTERFACE_SET);
 		}
@@ -22,7 +22,7 @@ final class JVMLinkResolver implements LinkResolver {
 	}
 
 	@Override
-	public Result<MethodInfo> resolveStaticMethod(@NotNull ClassInfo info, @NotNull String name, @NotNull MethodDescriptor type, boolean itf) {
+	public @NotNull Result<MethodInfo> resolveStaticMethod(@NotNull ClassInfo info, @NotNull String name, @NotNull MethodDescriptor type, boolean itf) {
 		MethodInfo method;
 		if (itf) {
 			if (!Modifier.isInterface(info.getAccessFlags())) {
@@ -45,16 +45,19 @@ final class JVMLinkResolver implements LinkResolver {
 	}
 
 	@Override
-	public Result<MethodInfo> resolveSpecialMethod(@NotNull ClassInfo info, @NotNull String name, @NotNull MethodDescriptor type, boolean itf) {
+	public @NotNull Result<MethodInfo> resolveSpecialMethod(@NotNull ClassInfo info, @NotNull String name, @NotNull MethodDescriptor type, boolean itf) {
 		if (Modifier.isInterface(info.getAccessFlags()) != itf) {
 			return Error.of(itf ? FailureReason.ACC_INTERFACE_UNSET : FailureReason.ACC_INTERFACE_SET);
 		}
-		MethodInfo method = itf ? uncachedInterfaceMethod(info, name, type) : uncachedLookupMethod(info, name, type);
+		MethodInfo method;
+		if (itf || (method = uncachedLookupMethod(info, name, type)) == null) {
+			method = uncachedInterfaceMethod(info, name, type);
+		}
 		return checkVirtualMethod(method);
 	}
 
 	@Override
-	public Result<MethodInfo> resolveInterfaceMethod(@NotNull ClassInfo info, @NotNull String name, @NotNull MethodDescriptor type) {
+	public @NotNull Result<MethodInfo> resolveInterfaceMethod(@NotNull ClassInfo info, @NotNull String name, @NotNull MethodDescriptor type) {
 		if (!Modifier.isInterface(info.getAccessFlags())) {
 			return Error.of(FailureReason.ACC_INTERFACE_UNSET);
 		}
@@ -69,7 +72,7 @@ final class JVMLinkResolver implements LinkResolver {
 	}
 
 	@Override
-	public Result<FieldInfo> resolveStaticField(@NotNull ClassInfo owner, @NotNull String name, @NotNull FieldDescriptor type) {
+	public @NotNull Result<FieldInfo> resolveStaticField(@NotNull ClassInfo owner, @NotNull String name, @NotNull FieldDescriptor type) {
 		ClassInfo info = owner;
 		FieldInfo field = null;
 		while (owner != null) {
@@ -93,7 +96,7 @@ final class JVMLinkResolver implements LinkResolver {
 	}
 
 	@Override
-	public Result<FieldInfo> resolveVirtualField(@NotNull ClassInfo info, @NotNull String name, @NotNull FieldDescriptor type) {
+	public @NotNull Result<FieldInfo> resolveVirtualField(@NotNull ClassInfo info, @NotNull String name, @NotNull FieldDescriptor type) {
 		while (info != null) {
 			FieldInfo field = info.getField(name, type);
 			if (field != null) {
@@ -111,9 +114,8 @@ final class JVMLinkResolver implements LinkResolver {
 	MethodInfo uncachedLookupMethod(ClassInfo owner, String name, MethodDescriptor descriptor) {
 		do {
 			MethodInfo method = owner.getMethod(name, descriptor);
-			if (method != null) {
+			if (method != null)
 				return method;
-			}
 		} while ((owner = owner.getSuperclass()) != null);
 		return null;
 	}
@@ -153,7 +155,6 @@ final class JVMLinkResolver implements LinkResolver {
 	private <V extends MemberInfo, T extends Descriptor> V uncachedInterfaceLookup(ClassInfo info, String name, T desc, boolean guessAbstract, UncachedResolve<V, T> resolve) {
 		V guess = null;
 		Deque<ClassInfo> queue = new ArrayDeque<>();
-		queue.push(info);
 		do {
 			if (Modifier.isInterface(info.getAccessFlags())) {
 				// Only check field/method if it's an interface.

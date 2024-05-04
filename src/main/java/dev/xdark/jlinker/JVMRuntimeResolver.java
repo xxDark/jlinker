@@ -21,7 +21,7 @@ final class JVMRuntimeResolver implements RuntimeResolver {
     public @NotNull Result<MethodInfo> resolveVirtualMethod(@NotNull ClassInfo owner, @NotNull String name, @NotNull MethodDescriptor descriptor) {
         Result<MethodInfo> result = linkResolver.resolveVirtualMethod(owner, name, descriptor);
         if (result instanceof Success) {
-            if (Modifier.isAbstract(result.getValue().getAccessFlags())) {
+            if (Modifier.isAbstract(result.value().getAccessFlags())) {
                 return Error.of(FailureReason.ACC_ABSTRACT_SET);
             }
         }
