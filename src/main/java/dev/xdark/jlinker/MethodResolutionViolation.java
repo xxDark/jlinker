@@ -1,0 +1,10 @@
+package dev.xdark.jlinker;
+
+public enum MethodResolutionViolation {
+	NO_SUCH_METHOD,
+	EXPECTED_INTERFACE,
+	EXPECTED_CLASS,
+	EXPECTED_STATIC_METHOD,
+	EXPECTED_VIRTUAL_METHOD,
+	REQUIRES_SPECIAL,
+}

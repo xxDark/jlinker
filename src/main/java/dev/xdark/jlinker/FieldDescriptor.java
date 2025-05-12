@@ -1,4 +1,4 @@
 package dev.xdark.jlinker;
 
-public interface FieldDescriptor extends Descriptor {
+public interface FieldDescriptor {
 }

@@ -1,4 +1,4 @@
 package dev.xdark.jlinker;
 
-public interface MethodDescriptor extends Descriptor {
+public interface MethodDescriptor {
 }
