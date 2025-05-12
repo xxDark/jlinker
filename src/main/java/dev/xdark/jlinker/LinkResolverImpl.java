@@ -89,7 +89,7 @@ final class LinkResolverImpl implements LinkResolver {
 	}
 
 	@Override
-	public <M extends MethodModel> @NotNull M resolveSpecialMethod(@NotNull ClassModel<M, ?> refc, @NotNull String name, @NotNull MethodDescriptor descriptor) throws MethodResolutionException {
+	public <M extends MethodModel> @NotNull M resolveSpecialMethod(@NotNull ClassModel<M, ?> refc, @NotNull String name, @NotNull MethodDescriptor descriptor, @Nullable ClassModel<M, ?> caller) throws MethodResolutionException {
 		MethodLookupResult<M> result;
 		if (!Modifier.isStatic(refc.accessFlags())) {
 			result = resolveMethod(MethodResolutionType.SPECIAL, refc, name, descriptor);
@@ -99,8 +99,12 @@ final class LinkResolverImpl implements LinkResolver {
 		if ("<init>".equals(name) && result.refc != refc) {
 			throw new MethodResolutionException(MethodResolutionViolation.NO_SUCH_METHOD);
 		}
-		// TODO compiler does not generate miranda methods anymore...
-		// Should there be indirect interface check?
+		// Miranda methods handling
+		if (caller != null && Modifier.isInterface(refc.accessFlags())) {
+			if (!isSameOrDirectInterface(caller, refc)) {
+				throw new MethodResolutionException(MethodResolutionViolation.INDIRECT_INTERFACE);
+			}
+		}
 		var method = result.method;
 		if (Modifier.isStatic(method.accessFlags())) {
 			throw new MethodResolutionException(MethodResolutionViolation.EXPECTED_VIRTUAL_METHOD);
@@ -212,6 +216,14 @@ final class LinkResolverImpl implements LinkResolver {
 			}
 		} while ((interfaces = stack.poll()) != null);
 		return null;
+	}
+
+	private static boolean isSameOrDirectInterface(ClassModel<?, ?> me, ClassModel<?, ?> that) {
+		if (me == that) return true;
+		for (var iface : me.interfaces()) {
+			if (iface == that) return true;
+		}
+		return false;
 	}
 
 	private record MethodLookupResult<M extends MethodModel>(ClassModel<M, ?> refc, M method) {

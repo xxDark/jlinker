@@ -2,6 +2,7 @@ package dev.xdark.jlinker;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface LinkResolver {
 
@@ -50,7 +51,8 @@ public interface LinkResolver {
 	<M extends MethodModel> M resolveSpecialMethod(
 			@NotNull ClassModel<M, ?> refc,
 			@NotNull String name,
-			@NotNull MethodDescriptor descriptor
+			@NotNull MethodDescriptor descriptor,
+			@Nullable ClassModel<M, ?> caller
 	) throws MethodResolutionException;
 
 	@NotNull
