@@ -7,7 +7,7 @@ public final class FieldResolutionException extends Exception {
 	private final FieldResolutionViolation violation;
 
 	FieldResolutionException(FieldResolutionViolation violation) {
-		super(null, null, false, false);
+		super("Resolution violation: %s".formatted(violation), null, false, false);
 		this.violation = violation;
 	}
 

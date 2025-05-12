@@ -7,6 +7,9 @@ import org.objectweb.asm.Type;
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -37,12 +40,23 @@ public class MethodResolutionTest {
 		testMethodOk(() -> linkResolver.resolveVirtualMethod(cls(ArrayList.class), "clone", mdesc(Object.class)), cls(ArrayList.class));
 		testMethodOk(() -> linkResolver.resolveVirtualMethod(cls(Object.class), "clone", mdesc(Object.class)), cls(Object.class));
 		testMethodOk(() -> linkResolver.resolveVirtualMethod(cls(String.class), "clone", mdesc(Object.class)), cls(Object.class));
+
+		testMethodOk(() -> linkResolver.resolveInterfaceMethod(cls(Stream.class), "close", mdesc(void.class)));
+		testMethodOk(() -> linkResolver.resolveVirtualMethod(cls(EnumSet.class), "forEach", mdesc(void.class, Consumer.class)));
 	}
 
 	@FunctionalInterface
 	private interface ModelSupplier {
 
 		MyMethodModel get() throws MethodResolutionException;
+	}
+
+	private static void testMethodOk(ModelSupplier modelSupplier) {
+		try {
+			modelSupplier.get();
+		} catch (MethodResolutionException ex) {
+			fail(ex);
+		}
 	}
 
 	private static void testMethodOk(ModelSupplier modelSupplier, MyClassModel expected) {

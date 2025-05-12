@@ -7,7 +7,7 @@ public final class MethodResolutionException extends Exception {
 	private final MethodResolutionViolation violation;
 
 	MethodResolutionException(MethodResolutionViolation violation) {
-		super(null, null, false, false);
+		super("Resolution violation: %s".formatted(violation), null, false, false);
 		this.violation = violation;
 	}
 

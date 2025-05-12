@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
+import java.util.function.Predicate;
 
 final class LinkResolverImpl implements LinkResolver {
 
@@ -134,6 +135,9 @@ final class LinkResolverImpl implements LinkResolver {
 		}
 		var result = lookupMethodInClasses(refc, name, descriptor, true);
 		if (result == null) {
+			result = lookupMethodInInterfaces(refc, name, descriptor);
+		}
+		if (result == null) {
 			throw new MethodResolutionException(MethodResolutionViolation.NO_SUCH_METHOD);
 		}
 		if (resolutionType != MethodResolutionType.STATIC && Modifier.isStatic(result.method.accessFlags())) {
@@ -181,29 +185,22 @@ final class LinkResolverImpl implements LinkResolver {
 
 	@Nullable
 	private static <M extends MethodModel> MethodLookupResult<M> lookupDefaultMethod(ClassModel<M, ?> refc, String name, MethodDescriptor descriptor) {
-		var stack = new ArrayDeque<Iterable<? extends ClassModel<M, ?>>>();
-		var interfaces = refc.interfaces();
-		do {
-			for (var iface : interfaces) {
-				stack.push(iface.interfaces());
-				M method;
-				if ((method = iface.findMethod(name, descriptor)) == null)
-					continue;
-				int accessFlags = method.accessFlags();
-				if (!Modifier.isPublic(accessFlags)) continue;
-				if (Modifier.isStatic(accessFlags)) continue;
-				if (!Modifier.isAbstract(accessFlags))
-					return new MethodLookupResult<>(iface, method);
-			}
-		} while ((interfaces = stack.poll()) != null);
-		return null;
+		return lookupMethodInInterfaces(refc, name, descriptor, m -> !Modifier.isAbstract(m.accessFlags()));
 	}
 
 	@Nullable
 	private static <M extends MethodModel> MethodLookupResult<M> lookupMethodInInterfaces(ClassModel<M, ?> refc, String name, MethodDescriptor descriptor) {
+		return lookupMethodInInterfaces(refc, name, descriptor, __ -> true);
+	}
+
+	@Nullable
+	private static <M extends MethodModel> MethodLookupResult<M> lookupMethodInInterfaces(ClassModel<M, ?> refc, String name, MethodDescriptor descriptor, Predicate<? super M> tester) {
 		var stack = new ArrayDeque<Iterable<? extends ClassModel<M, ?>>>();
-		var interfaces = refc.interfaces();
 		do {
+			stack.push(refc.interfaces());
+		} while ((refc = refc.superClass()) != null);
+		Iterable<? extends ClassModel<M, ?>> interfaces;
+		while ((interfaces = stack.poll()) != null) {
 			for (var iface : interfaces) {
 				stack.push(iface.interfaces());
 				M method;
@@ -212,9 +209,11 @@ final class LinkResolverImpl implements LinkResolver {
 				int accessFlags = method.accessFlags();
 				if (!Modifier.isPublic(accessFlags)) continue;
 				if (Modifier.isStatic(accessFlags)) continue;
+				if (!tester.test(method))
+					continue;
 				return new MethodLookupResult<>(iface, method);
 			}
-		} while ((interfaces = stack.poll()) != null);
+		}
 		return null;
 	}
 
