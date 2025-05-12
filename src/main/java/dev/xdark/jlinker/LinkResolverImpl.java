@@ -210,9 +210,9 @@ final class LinkResolverImpl implements LinkResolver {
 				if ((method = iface.findMethod(name, descriptor)) == null)
 					continue;
 				int accessFlags = method.accessFlags();
-				if (Modifier.isPublic(accessFlags) && !Modifier.isStatic(accessFlags)) {
-					return new MethodLookupResult<>(iface, method);
-				}
+				if (!Modifier.isPublic(accessFlags)) continue;
+				if (Modifier.isStatic(accessFlags)) continue;
+				return new MethodLookupResult<>(iface, method);
 			}
 		} while ((interfaces = stack.poll()) != null);
 		return null;
@@ -226,7 +226,7 @@ final class LinkResolverImpl implements LinkResolver {
 		return false;
 	}
 
-	private record MethodLookupResult<M extends MethodModel>(ClassModel<M, ?> refc, M method) {
+	private record MethodLookupResult<M extends MethodModel>(@NotNull ClassModel<M, ?> refc, @NotNull M method) {
 	}
 
 	private enum MethodResolutionType {
