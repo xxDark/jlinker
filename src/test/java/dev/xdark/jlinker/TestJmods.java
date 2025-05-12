@@ -1,11 +1,12 @@
 package dev.xdark.jlinker;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
 
@@ -62,6 +63,46 @@ public class TestJmods {
 							public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
 								return new MethodVisitor(ASM9) {
 
+									private void testMethodHandle(int opcode, Handle handle) {
+										visitMethodInsn(opcode, handle.getOwner(), handle.getName(), handle.getDesc(), handle.isInterface());
+									}
+
+									private void testFieldHandle(int opcode, Handle handle) {
+										visitFieldInsn(opcode, handle.getOwner(), handle.getName(), handle.getDesc());
+									}
+
+									private void testXHandle(Handle handle) {
+										int tag = handle.getTag();
+										int opcode = switch (tag) {
+											case H_GETFIELD -> GETFIELD;
+											case H_GETSTATIC -> GETSTATIC;
+											case H_PUTFIELD -> PUTFIELD;
+											case H_PUTSTATIC -> PUTSTATIC;
+											case H_INVOKEVIRTUAL -> INVOKEVIRTUAL;
+											case H_INVOKESTATIC -> INVOKESTATIC;
+											case H_INVOKESPECIAL, H_NEWINVOKESPECIAL -> INVOKESPECIAL;
+											case H_INVOKEINTERFACE -> INVOKEINTERFACE;
+											default -> throw new IllegalStateException();
+										};
+										if (tag < H_INVOKEVIRTUAL) {
+											testFieldHandle(opcode, handle);
+											return;
+										}
+										testMethodHandle(opcode, handle);
+									}
+
+									private void testCst(Object cst) {
+										if (cst instanceof Handle handle) {
+											testXHandle(handle);
+											return;
+										}
+										if (!(cst instanceof ConstantDynamic constantDynamic))
+											return;
+										for (int i = constantDynamic.getBootstrapMethodArgumentCount(); i != 0; ) {
+											testCst(constantDynamic.getBootstrapMethodArgument(--i));
+										}
+									}
+
 									@Override
 									public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
 										var cm = classLookup.findClassOrNull(owner);
@@ -99,6 +140,19 @@ public class TestJmods {
 										} catch (ClassNotFoundException ignored) {
 										} catch (MethodResolutionException t) {
 											fail(t);
+										}
+									}
+
+									@Override
+									public void visitLdcInsn(Object value) {
+										testCst(value);
+									}
+
+									@Override
+									public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
+										testXHandle(bootstrapMethodHandle);
+										for (var arg : bootstrapMethodArguments) {
+											testCst(arg);
 										}
 									}
 								};
