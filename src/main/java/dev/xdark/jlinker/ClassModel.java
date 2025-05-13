@@ -21,7 +21,7 @@ public interface ClassModel<METHOD extends MemberModel, FIELD extends FieldModel
 	@NotNull
 	@Unmodifiable
 	@Contract(pure = true)
-	Iterable<? extends ClassModel<METHOD, FIELD>> interfaces();
+	Iterable<? extends @NotNull ClassModel<METHOD, FIELD>> interfaces();
 
 	@Nullable
 	@Contract(pure = true)

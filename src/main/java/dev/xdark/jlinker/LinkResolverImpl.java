@@ -100,7 +100,6 @@ final class LinkResolverImpl implements LinkResolver {
 		if ("<init>".equals(name) && result.refc != refc) {
 			throw new MethodResolutionException(MethodResolutionViolation.NO_SUCH_METHOD);
 		}
-		// Miranda methods handling
 		if (caller != null && Modifier.isInterface(refc.accessFlags())) {
 			if (!isSameOrDirectInterface(caller, refc)) {
 				throw new MethodResolutionException(MethodResolutionViolation.INDIRECT_INTERFACE);
