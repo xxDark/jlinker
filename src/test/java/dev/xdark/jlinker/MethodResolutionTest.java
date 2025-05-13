@@ -43,6 +43,8 @@ public class MethodResolutionTest {
 
 		testMethodOk(() -> linkResolver.resolveInterfaceMethod(cls(Stream.class), "close", mdesc(void.class)));
 		testMethodOk(() -> linkResolver.resolveVirtualMethod(cls(EnumSet.class), "forEach", mdesc(void.class, Consumer.class)));
+
+		testMethodOk(() -> linkResolver.resolveSpecialMethod(cls(InstanceMethods.Case1Child.class), "foo", mdesc(void.class), cls(InstanceMethods.Case1ChildChild.class)));
 	}
 
 	@FunctionalInterface

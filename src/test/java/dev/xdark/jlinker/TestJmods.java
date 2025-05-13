@@ -1,5 +1,6 @@
 package dev.xdark.jlinker;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.objectweb.asm.ClassReader;
@@ -8,10 +9,17 @@ import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.VarHandle;
 import java.lang.module.ModuleFinder;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.objectweb.asm.Opcodes.*;
@@ -21,12 +29,34 @@ import static org.objectweb.asm.Opcodes.*;
 		matches = ".*"
 )
 public class TestJmods {
+	private static Map<String, Set<String>> polymorphicMethods;
+
+	@BeforeAll
+	public static void setup() {
+		polymorphicMethods = new HashMap<>();
+		putPolymorphicMethods(MethodHandle.class);
+		putPolymorphicMethods(VarHandle.class);
+	}
+
+	private static void putPolymorphicMethods(Class<?> holder) {
+		var set = new HashSet<String>();
+		for (var m : holder.getDeclaredMethods()) {
+			for (var declaredAnnotation : m.getDeclaredAnnotations()) {
+				if ("PolymorphicSignature".equals(declaredAnnotation.annotationType().getSimpleName())) {
+					set.add(m.getName());
+				}
+			}
+		}
+		if (!set.isEmpty()) {
+			polymorphicMethods.put(Type.getInternalName(holder), set);
+		}
+	}
 
 	@Test
 	public void doTest() throws Exception {
 		var classLookup = new ClassLookup();
 		var linkResolver = LinkResolver.create();
-		var buffer = new byte[16384];
+		var buffer = new byte[65536 * 4];
 		for (var moduleReference : ModuleFinder.ofSystem().findAll()) {
 			try (var mr = moduleReference.open()) {
 				try (var stream = mr.list()) {
@@ -166,8 +196,7 @@ public class TestJmods {
 
 	private static boolean shouldMethodBeSkipped(String owner, String name, String descriptor) {
 		// Resolution of polymorphic signature methods is not supported.
-		if (!(owner.equals("java/lang/invoke/MethodHandle") || owner.equals("java/lang/invoke/VarHandle")))
-			return false;
-		return true;
+		var set = polymorphicMethods.get(owner);
+		return set != null && set.contains(name);
 	}
 }

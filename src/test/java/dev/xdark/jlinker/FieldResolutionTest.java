@@ -9,7 +9,8 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.zip.CheckedOutputStream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class FieldResolutionTest {
 	private static ClassLookup classLookup;
@@ -40,6 +41,8 @@ public class FieldResolutionTest {
 	public void testVirtualFields() {
 		testVirtualFieldOk(cls(CheckedOutputStream.class), "out", fdesc(OutputStream.class), cls(FilterOutputStream.class));
 		testVirtualFieldError(cls(System.class), "out", fdesc(PrintStream.class), FieldResolutionViolation.EXPECTED_VIRTUAL_FIELD);
+		testVirtualFieldOk(cls(InstanceFields.Case1.class), "ASTORE", fdesc(int.class), cls(InstanceFields.Case1.class));
+		testVirtualFieldError(cls(InstanceFields.Case2Child.class), "ASTORE", fdesc(int.class), FieldResolutionViolation.EXPECTED_VIRTUAL_FIELD);
 	}
 
 	private static void testStaticFieldOk(MyClassModel refc, String name, FieldDescriptorString descriptor, MyClassModel expected) {

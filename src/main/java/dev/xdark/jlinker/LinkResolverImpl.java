@@ -165,10 +165,10 @@ final class LinkResolverImpl implements LinkResolver {
 				Modifier.isInterface(refc.accessFlags()) &&
 				(Modifier.isStatic(result.accessFlags()) || !Modifier.isPublic(result.accessFlags())) &&
 				"java/lang/Object".equals(uncachedLookup.refc.name())) {
-			result = null;
+			uncachedLookup = null;
 		}
-		if (result == null) {
-			return lookupDefaultMethod(refc, name, descriptor);
+		if (uncachedLookup == null) {
+			uncachedLookup = lookupDefaultMethod(refc, name, descriptor);
 		}
 		return uncachedLookup;
 	}
