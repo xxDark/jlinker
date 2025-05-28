@@ -58,7 +58,7 @@ final class LinkResolverImpl implements LinkResolver {
 	@Override
 	public <M extends MethodModel> @NotNull M resolveStaticMethod(@NotNull ClassModel<M, ?> refc, @NotNull String name, @NotNull MethodDescriptor descriptor) throws MethodResolutionException {
 		MethodLookupResult<M> result;
-		if (!Modifier.isStatic(refc.accessFlags())) {
+		if (!Modifier.isInterface(refc.accessFlags())) {
 			result = resolveMethod(MethodResolutionType.STATIC, refc, name, descriptor);
 		} else {
 			result = resolveInterfaceMethod(MethodResolutionType.STATIC, refc, name, descriptor);
@@ -92,7 +92,7 @@ final class LinkResolverImpl implements LinkResolver {
 	@Override
 	public <M extends MethodModel> @NotNull M resolveSpecialMethod(@NotNull ClassModel<M, ?> refc, @NotNull String name, @NotNull MethodDescriptor descriptor, @Nullable ClassModel<M, ?> caller) throws MethodResolutionException {
 		MethodLookupResult<M> result;
-		if (!Modifier.isStatic(refc.accessFlags())) {
+		if (!Modifier.isInterface(refc.accessFlags())) {
 			result = resolveMethod(MethodResolutionType.SPECIAL, refc, name, descriptor);
 		} else {
 			result = resolveInterfaceMethod(MethodResolutionType.SPECIAL, refc, name, descriptor);
