@@ -1,8 +1,8 @@
 package dev.xdark.jlinker;
 
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public final class MethodResolutionException extends Exception {
 	private final MethodResolutionViolation violation;
 
@@ -11,8 +11,6 @@ public final class MethodResolutionException extends Exception {
 		this.violation = violation;
 	}
 
-	@NotNull
-	@Contract(pure = true)
 	public MethodResolutionViolation violation() {
 		return violation;
 	}

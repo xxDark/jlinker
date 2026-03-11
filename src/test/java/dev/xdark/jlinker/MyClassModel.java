@@ -1,13 +1,17 @@
 package dev.xdark.jlinker;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import dev.xdark.jlinker.runtime.Module;
+import dev.xdark.jlinker.runtime.RuntimeModule;
 import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.util.Iterator;
 
+@NullMarked
 final class MyClassModel implements ClassModel<MyMethodModel, MyFieldModel> {
+	private static final Module UNNAMED_MODULE = new RuntimeModule(null, null, null);
 	private final ClassLookup classLookup;
 	final ClassNode classNode;
 
@@ -17,7 +21,12 @@ final class MyClassModel implements ClassModel<MyMethodModel, MyFieldModel> {
 	}
 
 	@Override
-	public @NotNull String name() {
+	public Module module() {
+		return UNNAMED_MODULE;
+	}
+
+	@Override
+	public String name() {
 		return classNode.name;
 	}
 
@@ -33,7 +42,7 @@ final class MyClassModel implements ClassModel<MyMethodModel, MyFieldModel> {
 	}
 
 	@Override
-	public @NotNull @Unmodifiable Iterable<? extends ClassModel<MyMethodModel, MyFieldModel>> interfaces() {
+	public @Unmodifiable Iterable<? extends ClassModel<MyMethodModel, MyFieldModel>> interfaces() {
 		var interfaces = classNode.interfaces;
 		var classLookup = this.classLookup;
 		return () -> new Iterator<>() {
@@ -52,7 +61,7 @@ final class MyClassModel implements ClassModel<MyMethodModel, MyFieldModel> {
 	}
 
 	@Override
-	public @Nullable MyMethodModel findMethod(@NotNull String name, @NotNull MethodDescriptor descriptor) {
+	public @Nullable MyMethodModel findMethod(String name, MethodDescriptor descriptor) {
 		var rawDesc = descriptor.toString();
 		for (var m : classNode.methods) {
 			if (name.equals(m.name) && rawDesc.equals(m.desc)) {
@@ -63,7 +72,7 @@ final class MyClassModel implements ClassModel<MyMethodModel, MyFieldModel> {
 	}
 
 	@Override
-	public @Nullable MyFieldModel findField(@NotNull String name, @NotNull FieldDescriptor descriptor) {
+	public @Nullable MyFieldModel findField(String name, FieldDescriptor descriptor) {
 		var rawDesc = descriptor.toString();
 		for (var f : classNode.fields) {
 			if (name.equals(f.name) && rawDesc.equals(f.desc)) {

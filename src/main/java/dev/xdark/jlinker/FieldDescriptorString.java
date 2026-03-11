@@ -1,8 +1,8 @@
 package dev.xdark.jlinker;
 
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public final class FieldDescriptorString implements FieldDescriptor {
 	private final String descriptor;
 
@@ -25,9 +25,7 @@ public final class FieldDescriptorString implements FieldDescriptor {
 		return descriptor.hashCode();
 	}
 
-	@NotNull
-	@Contract(pure = true)
-	public static FieldDescriptorString of(@NotNull String descriptor) {
+	public static FieldDescriptorString of(String descriptor) {
 		return new FieldDescriptorString(descriptor);
 	}
 }

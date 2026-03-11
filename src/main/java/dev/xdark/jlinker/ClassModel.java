@@ -1,33 +1,23 @@
 package dev.xdark.jlinker;
 
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
+import dev.xdark.jlinker.runtime.Module;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
+@NullMarked
 public interface ClassModel<METHOD extends MemberModel, FIELD extends FieldModel> {
 
-	@NotNull
-	@Contract(pure = true)
+	Module module();
+
 	String name();
 
-	@Contract(pure = true)
 	int accessFlags();
 
-	@Nullable
-	@Contract(pure = true)
-	ClassModel<METHOD, FIELD> superClass();
+	@Nullable ClassModel<METHOD, FIELD> superClass();
 
-	@NotNull
-	@Unmodifiable
-	@Contract(pure = true)
-	Iterable<? extends @NotNull ClassModel<METHOD, FIELD>> interfaces();
+	Iterable<? extends ClassModel<METHOD, FIELD>> interfaces();
 
-	@Nullable
-	@Contract(pure = true)
-	METHOD findMethod(@NotNull String name, @NotNull MethodDescriptor descriptor);
+	@Nullable METHOD findMethod(String name, MethodDescriptor descriptor);
 
-	@Nullable
-	@Contract(pure = true)
-	FIELD findField(@NotNull String name, @NotNull FieldDescriptor descriptor);
+	@Nullable FIELD findField(String name, FieldDescriptor descriptor);
 }

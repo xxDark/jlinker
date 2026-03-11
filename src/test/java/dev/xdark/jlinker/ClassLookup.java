@@ -5,12 +5,12 @@ import org.objectweb.asm.tree.ClassNode;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 final class ClassLookup {
-	private final Map<String, MyClassModel> models = new ConcurrentHashMap<>();
+	private final Map<String, MyClassModel> models = new HashMap<>();
 
 	MyClassModel obtrude(ClassNode node) {
 		MyClassModel cm;

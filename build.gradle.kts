@@ -1,5 +1,5 @@
 plugins {
-    java
+    `java-library`
     `maven-publish`
 }
 
@@ -13,6 +13,8 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.bundles.asm)
 
+    compileOnly(libs.jspecify)
+    testCompileOnly(libs.jspecify)
     compileOnly(libs.jetbrains.annotations)
     testCompileOnly(libs.jetbrains.annotations)
 }

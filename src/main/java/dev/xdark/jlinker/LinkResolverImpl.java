@@ -1,16 +1,21 @@
 package dev.xdark.jlinker;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.function.Predicate;
 
+@NullMarked
 final class LinkResolverImpl implements LinkResolver {
 
 	@Override
-	public <F extends FieldModel> @NotNull F resolveStaticField(@NotNull ClassModel<?, F> refc, @NotNull String name, @NotNull FieldDescriptor descriptor) throws FieldResolutionException {
+	public <F extends FieldModel> F resolveStaticField(
+			ClassModel<?, ? extends F> refc,
+			String name,
+			FieldDescriptor descriptor
+	) throws FieldResolutionException {
 		var field = lookupField(refc, name, descriptor);
 		if (field == null) {
 			throw new FieldResolutionException(FieldResolutionViolation.NO_SUCH_FIELD);
@@ -22,7 +27,11 @@ final class LinkResolverImpl implements LinkResolver {
 	}
 
 	@Override
-	public <F extends FieldModel> @NotNull F resolveVirtualField(@NotNull ClassModel<?, F> refc, @NotNull String name, @NotNull FieldDescriptor descriptor) throws FieldResolutionException {
+	public <F extends FieldModel> F resolveVirtualField(
+			ClassModel<?, ? extends F> refc,
+			String name,
+			FieldDescriptor descriptor
+	) throws FieldResolutionException {
 		var field = lookupField(refc, name, descriptor);
 		if (field == null) {
 			throw new FieldResolutionException(FieldResolutionViolation.NO_SUCH_FIELD);
@@ -33,7 +42,8 @@ final class LinkResolverImpl implements LinkResolver {
 		return field;
 	}
 
-	private static <F extends FieldModel> F lookupField(ClassModel<?, F> refc, String name, FieldDescriptor descriptor) {
+	private static <F extends FieldModel> @Nullable F lookupField(ClassModel<?, ? extends F> refc, String name,
+			FieldDescriptor descriptor) {
 		F field;
 		if ((field = refc.findField(name, descriptor)) != null)
 			return field;
@@ -44,7 +54,8 @@ final class LinkResolverImpl implements LinkResolver {
 		return null;
 	}
 
-	private static <F extends FieldModel> F lookupFieldInInterfaces(ClassModel<?, F> refc, String name, FieldDescriptor descriptor) {
+	private static <F extends FieldModel> @Nullable F lookupFieldInInterfaces(ClassModel<?, ? extends F> refc, String name,
+			FieldDescriptor descriptor) {
 		for (var iface : refc.interfaces()) {
 			F field;
 			if ((field = iface.findField(name, descriptor)) != null)
@@ -56,8 +67,12 @@ final class LinkResolverImpl implements LinkResolver {
 	}
 
 	@Override
-	public <M extends MethodModel> @NotNull M resolveStaticMethod(@NotNull ClassModel<M, ?> refc, @NotNull String name, @NotNull MethodDescriptor descriptor) throws MethodResolutionException {
-		MethodLookupResult<M> result;
+	public <M extends MethodModel> M resolveStaticMethod(
+			ClassModel<? extends M, ?> refc,
+			String name,
+			MethodDescriptor descriptor
+	) throws MethodResolutionException {
+		MethodLookupResult<? extends M> result;
 		if (!Modifier.isInterface(refc.accessFlags())) {
 			result = resolveMethod(MethodResolutionType.STATIC, refc, name, descriptor);
 		} else {
@@ -71,7 +86,11 @@ final class LinkResolverImpl implements LinkResolver {
 	}
 
 	@Override
-	public <M extends MethodModel> @NotNull M resolveVirtualMethod(@NotNull ClassModel<M, ?> refc, @NotNull String name, @NotNull MethodDescriptor descriptor) throws MethodResolutionException {
+	public <M extends MethodModel> M resolveVirtualMethod(
+			ClassModel<? extends M, ?> refc,
+			String name,
+			MethodDescriptor descriptor
+	) throws MethodResolutionException {
 		var result = resolveMethod(MethodResolutionType.VIRTUAL, refc, name, descriptor);
 		var method = result.method;
 		if (Modifier.isInterface(refc.accessFlags()) && Modifier.isPrivate(method.accessFlags())) {
@@ -84,14 +103,23 @@ final class LinkResolverImpl implements LinkResolver {
 	}
 
 	@Override
-	public <M extends MethodModel> @NotNull M resolveInterfaceMethod(@NotNull ClassModel<M, ?> refc, @NotNull String name, @NotNull MethodDescriptor descriptor) throws MethodResolutionException {
+	public <M extends MethodModel> M resolveInterfaceMethod(
+			ClassModel<? extends M, ?> refc,
+			String name,
+			MethodDescriptor descriptor
+	) throws MethodResolutionException {
 		var result = resolveInterfaceMethod(MethodResolutionType.INTERFACE, refc, name, descriptor);
 		return result.method;
 	}
 
 	@Override
-	public <M extends MethodModel> @NotNull M resolveSpecialMethod(@NotNull ClassModel<M, ?> refc, @NotNull String name, @NotNull MethodDescriptor descriptor, @Nullable ClassModel<M, ?> caller) throws MethodResolutionException {
-		MethodLookupResult<M> result;
+	public <M extends MethodModel> M resolveSpecialMethod(
+			ClassModel<? extends M, ?> refc,
+			String name,
+			MethodDescriptor descriptor,
+			@Nullable ClassModel<? extends M, ?> caller
+	) throws MethodResolutionException {
+		MethodLookupResult<? extends M> result;
 		if (!Modifier.isInterface(refc.accessFlags())) {
 			result = resolveMethod(MethodResolutionType.SPECIAL, refc, name, descriptor);
 		} else {
@@ -112,8 +140,12 @@ final class LinkResolverImpl implements LinkResolver {
 		return method;
 	}
 
-	@NotNull
-	private static <M extends MethodModel> MethodLookupResult<M> resolveMethod(MethodResolutionType resolutionType, ClassModel<M, ?> refc, String name, MethodDescriptor descriptor) throws MethodResolutionException {
+	private static <M extends MethodModel> MethodLookupResult<M> resolveMethod(
+			MethodResolutionType resolutionType,
+			ClassModel<M, ?> refc,
+			String name,
+			MethodDescriptor descriptor
+	) throws MethodResolutionException {
 		if (resolutionType == MethodResolutionType.VIRTUAL && Modifier.isInterface(refc.accessFlags())) {
 			throw new MethodResolutionException(MethodResolutionViolation.EXPECTED_CLASS);
 		}
@@ -127,8 +159,9 @@ final class LinkResolverImpl implements LinkResolver {
 		return result;
 	}
 
-	@NotNull
-	private static <M extends MethodModel> MethodLookupResult<M> resolveInterfaceMethod(MethodResolutionType resolutionType, ClassModel<M, ?> refc, String name, MethodDescriptor descriptor) throws MethodResolutionException {
+	private static <M extends MethodModel> MethodLookupResult<M> resolveInterfaceMethod(
+			MethodResolutionType resolutionType, ClassModel<M, ?> refc, String name,
+			MethodDescriptor descriptor) throws MethodResolutionException {
 		if (!Modifier.isInterface(refc.accessFlags())) {
 			throw new MethodResolutionException(MethodResolutionViolation.EXPECTED_INTERFACE);
 		}
@@ -173,7 +206,8 @@ final class LinkResolverImpl implements LinkResolver {
 	}
 
 	@Nullable
-	private static <M extends MethodModel> MethodLookupResult<M> uncachedLookupMethod(ClassModel<M, ?> refc, String name, MethodDescriptor descriptor) {
+	private static <M extends MethodModel> MethodLookupResult<M> uncachedLookupMethod(ClassModel<M, ?> refc,
+			String name, MethodDescriptor descriptor) {
 		do {
 			M method;
 			if ((method = refc.findMethod(name, descriptor)) != null)
@@ -183,17 +217,20 @@ final class LinkResolverImpl implements LinkResolver {
 	}
 
 	@Nullable
-	private static <M extends MethodModel> MethodLookupResult<M> lookupDefaultMethod(ClassModel<M, ?> refc, String name, MethodDescriptor descriptor) {
+	private static <M extends MethodModel> MethodLookupResult<M> lookupDefaultMethod(ClassModel<M, ?> refc, String name,
+			MethodDescriptor descriptor) {
 		return lookupMethodInInterfaces(refc, name, descriptor, m -> !Modifier.isAbstract(m.accessFlags()));
 	}
 
 	@Nullable
-	private static <M extends MethodModel> MethodLookupResult<M> lookupMethodInInterfaces(ClassModel<M, ?> refc, String name, MethodDescriptor descriptor) {
+	private static <M extends MethodModel> MethodLookupResult<M> lookupMethodInInterfaces(ClassModel<M, ?> refc,
+			String name, MethodDescriptor descriptor) {
 		return lookupMethodInInterfaces(refc, name, descriptor, __ -> true);
 	}
 
 	@Nullable
-	private static <M extends MethodModel> MethodLookupResult<M> lookupMethodInInterfaces(ClassModel<M, ?> refc, String name, MethodDescriptor descriptor, Predicate<? super M> tester) {
+	private static <M extends MethodModel> MethodLookupResult<M> lookupMethodInInterfaces(ClassModel<M, ?> refc,
+			String name, MethodDescriptor descriptor, Predicate<? super M> tester) {
 		var stack = new ArrayDeque<Iterable<? extends ClassModel<M, ?>>>();
 		do {
 			stack.push(refc.interfaces());
@@ -217,14 +254,14 @@ final class LinkResolverImpl implements LinkResolver {
 	}
 
 	private static boolean isSameOrDirectInterface(ClassModel<?, ?> me, ClassModel<?, ?> that) {
-		if (me == that) return true;
+		if (me.equals(that)) return true;
 		for (var iface : me.interfaces()) {
-			if (iface == that) return true;
+			if (iface.equals(that)) return true;
 		}
 		return false;
 	}
 
-	private record MethodLookupResult<M extends MethodModel>(@NotNull ClassModel<M, ?> refc, @NotNull M method) {
+	private record MethodLookupResult<M extends MethodModel>(ClassModel<M, ?> refc, M method) {
 	}
 
 	private enum MethodResolutionType {

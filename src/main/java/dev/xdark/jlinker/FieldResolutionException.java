@@ -1,8 +1,8 @@
 package dev.xdark.jlinker;
 
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public final class FieldResolutionException extends Exception {
 	private final FieldResolutionViolation violation;
 
@@ -11,8 +11,6 @@ public final class FieldResolutionException extends Exception {
 		this.violation = violation;
 	}
 
-	@NotNull
-	@Contract(pure = true)
 	public FieldResolutionViolation violation() {
 		return violation;
 	}

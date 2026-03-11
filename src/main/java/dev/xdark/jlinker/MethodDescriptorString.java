@@ -1,8 +1,8 @@
 package dev.xdark.jlinker;
 
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public final class MethodDescriptorString implements MethodDescriptor {
 	private final String descriptor;
 
@@ -25,9 +25,7 @@ public final class MethodDescriptorString implements MethodDescriptor {
 		return descriptor.hashCode();
 	}
 
-	@NotNull
-	@Contract(pure = true)
-	public static MethodDescriptorString of(@NotNull String descriptor) {
+	public static MethodDescriptorString of(String descriptor) {
 		return new MethodDescriptorString(descriptor);
 	}
 }
