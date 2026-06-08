@@ -11,6 +11,10 @@ import org.jspecify.annotations.NullMarked;
 /// or reflection framework.
 ///
 /// A single instance is stateless, cheap to create and thread-safe.
+/// Every call performs a fresh traversal of the class hierarchy;
+/// the implementation will never maintain internal state or caches.
+/// Callers that need caching or other bookkeeping should build their own
+/// wrapper around this interface.
 ///
 /// ## Quick example
 /// ```java
