@@ -9,6 +9,7 @@ version = "3.0.1"
 repositories.mavenCentral()
 
 dependencies {
+    implementation(gradleApi())
     testImplementation(libs.bundles.junit.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.bundles.asm)

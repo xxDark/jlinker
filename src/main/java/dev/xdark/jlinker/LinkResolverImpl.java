@@ -43,19 +43,19 @@ final class LinkResolverImpl implements LinkResolver {
 	}
 
 	private static <F extends FieldModel> @Nullable F lookupField(ClassModel<?, ? extends F> refc, String name,
-			FieldDescriptor descriptor) {
+	                                                              FieldDescriptor descriptor) {
 		F field;
-		if ((field = refc.findField(name, descriptor)) != null)
-			return field;
-		if ((field = lookupFieldInInterfaces(refc, name, descriptor)) != null)
-			return field;
-		if ((refc = refc.superClass()) != null)
-			return lookupField(refc, name, descriptor);
+		do {
+			if ((field = refc.findField(name, descriptor)) != null)
+				return field;
+			if ((field = lookupFieldInInterfaces(refc, name, descriptor)) != null)
+				return field;
+		} while ((refc = refc.superClass()) != null);
 		return null;
 	}
 
 	private static <F extends FieldModel> @Nullable F lookupFieldInInterfaces(ClassModel<?, ? extends F> refc, String name,
-			FieldDescriptor descriptor) {
+	                                                                          FieldDescriptor descriptor) {
 		for (var iface : refc.interfaces()) {
 			F field;
 			if ((field = iface.findField(name, descriptor)) != null)
@@ -178,8 +178,7 @@ final class LinkResolverImpl implements LinkResolver {
 		return result;
 	}
 
-	@Nullable
-	private static <M extends MethodModel> MethodLookupResult<M> lookupMethodInClasses(
+	private static <M extends MethodModel> @Nullable MethodLookupResult<M> lookupMethodInClasses(
 			ClassModel<M, ?> refc,
 			String name,
 			MethodDescriptor descriptor,
@@ -205,9 +204,8 @@ final class LinkResolverImpl implements LinkResolver {
 		return uncachedLookup;
 	}
 
-	@Nullable
-	private static <M extends MethodModel> MethodLookupResult<M> uncachedLookupMethod(ClassModel<M, ?> refc,
-			String name, MethodDescriptor descriptor) {
+	private static <M extends MethodModel> @Nullable MethodLookupResult<M> uncachedLookupMethod(ClassModel<M, ?> refc,
+	                                                                                            String name, MethodDescriptor descriptor) {
 		do {
 			M method;
 			if ((method = refc.findMethod(name, descriptor)) != null)
@@ -216,27 +214,24 @@ final class LinkResolverImpl implements LinkResolver {
 		return null;
 	}
 
-	@Nullable
-	private static <M extends MethodModel> MethodLookupResult<M> lookupDefaultMethod(ClassModel<M, ?> refc, String name,
-			MethodDescriptor descriptor) {
+	private static <M extends MethodModel> @Nullable MethodLookupResult<M> lookupDefaultMethod(ClassModel<M, ?> refc, String name,
+	                                                                                           MethodDescriptor descriptor) {
 		return lookupMethodInInterfaces(refc, name, descriptor, m -> !Modifier.isAbstract(m.accessFlags()));
 	}
 
-	@Nullable
-	private static <M extends MethodModel> MethodLookupResult<M> lookupMethodInInterfaces(ClassModel<M, ?> refc,
-			String name, MethodDescriptor descriptor) {
+	private static <M extends MethodModel> @Nullable MethodLookupResult<M> lookupMethodInInterfaces(ClassModel<M, ?> refc,
+	                                                                                                String name, MethodDescriptor descriptor) {
 		return lookupMethodInInterfaces(refc, name, descriptor, __ -> true);
 	}
 
-	@Nullable
-	private static <M extends MethodModel> MethodLookupResult<M> lookupMethodInInterfaces(ClassModel<M, ?> refc,
-			String name, MethodDescriptor descriptor, Predicate<? super M> tester) {
-		var stack = new ArrayDeque<Iterable<? extends ClassModel<M, ?>>>();
+	private static <M extends MethodModel> @Nullable MethodLookupResult<M> lookupMethodInInterfaces(ClassModel<M, ?> refc,
+	                                                                                                String name, MethodDescriptor descriptor, Predicate<? super M> tester) {
+		var stack = new ArrayDeque<Iterable<? extends ClassModel<M, ?>>>(4);
 		do {
 			stack.push(refc.interfaces());
 		} while ((refc = refc.superClass()) != null);
 		Iterable<? extends ClassModel<M, ?>> interfaces;
-		while ((interfaces = stack.poll()) != null) {
+		while ((interfaces = stack.pollLast()) != null) {
 			for (var iface : interfaces) {
 				stack.push(iface.interfaces());
 				M method;

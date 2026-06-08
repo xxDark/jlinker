@@ -8,11 +8,17 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 
+/// Utility methods for creating modified copies of [ModuleDescriptor] instances.
+///
+/// [ModuleDescriptor] is immutable; these helpers rebuild a descriptor with a
+/// single property changed while preserving everything else. All methods
+/// return a new [ModuleDescriptor] and leave the original unchanged.
 @NullMarked
 public final class Modules {
 	private Modules() {
 	}
 
+	/// Returns a copy of `descriptor` with the module name replaced by `name`.
 	public static ModuleDescriptor withName(
 			ModuleDescriptor descriptor,
 			String name
@@ -25,6 +31,7 @@ public final class Modules {
 		});
 	}
 
+	/// Returns a copy of `descriptor` with the module modifiers replaced by `modifiers`.
 	public static ModuleDescriptor withModifiers(
 			ModuleDescriptor descriptor,
 			Set<? extends ModuleDescriptor.Modifier> modifiers
@@ -37,6 +44,8 @@ public final class Modules {
 		});
 	}
 
+	/// Returns a copy of `descriptor` with the main class set to `mainClass`,
+	/// or cleared if `mainClass` is `null`.
 	public static ModuleDescriptor withMainClass(
 			ModuleDescriptor descriptor,
 			@Nullable String mainClass
@@ -49,6 +58,8 @@ public final class Modules {
 		});
 	}
 
+	/// Returns a copy of `descriptor` with the version set to `version`,
+	/// or cleared if `version` is `null`.
 	public static ModuleDescriptor withVersion(
 			ModuleDescriptor descriptor,
 			ModuleDescriptor.@Nullable Version version
@@ -61,6 +72,7 @@ public final class Modules {
 		});
 	}
 
+	/// Returns a copy of `descriptor` with the exports list replaced by `exports`.
 	public static ModuleDescriptor withExports(
 			ModuleDescriptor descriptor,
 			Collection<? extends ModuleDescriptor.Exports> exports
@@ -73,6 +85,7 @@ public final class Modules {
 		});
 	}
 
+	/// Returns a copy of `descriptor` with the opens list replaced by `opens`.
 	public static ModuleDescriptor withOpens(
 			ModuleDescriptor descriptor,
 			Collection<? extends ModuleDescriptor.Opens> opens
@@ -85,6 +98,7 @@ public final class Modules {
 		});
 	}
 
+	/// Returns a copy of `descriptor` with the requires list replaced by `requires`.
 	public static ModuleDescriptor withRequires(
 			ModuleDescriptor descriptor,
 			Collection<? extends ModuleDescriptor.Requires> requires
@@ -97,6 +111,8 @@ public final class Modules {
 		});
 	}
 
+	/// Returns a copy of `descriptor` with an additional qualified export of
+	/// `packageName` to `targets`, using the given export `modifiers`.
 	public static ModuleDescriptor addExports(
 			ModuleDescriptor descriptor,
 			Collection<? extends ModuleDescriptor.Exports.Modifier> modifiers,
@@ -111,6 +127,8 @@ public final class Modules {
 		});
 	}
 
+	/// Returns a copy of `descriptor` with an additional qualified export of
+	/// `packageName` to `targets` (no extra modifiers).
 	public static ModuleDescriptor addExports(
 			ModuleDescriptor descriptor,
 			String packageName,
@@ -119,10 +137,14 @@ public final class Modules {
 		return addExports(descriptor, Set.of(), packageName, Set.copyOf(targets));
 	}
 
+	/// Returns a copy of `descriptor` with an additional unqualified export of
+	/// `packageName` (exported to all modules).
 	public static ModuleDescriptor addExports(ModuleDescriptor descriptor, String packageName) {
 		return addExports(descriptor, packageName, Set.of());
 	}
 
+	/// Returns a copy of `descriptor` with an additional qualified opens of
+	/// `packageName` to `targets`, using the given opens `modifiers`.
 	public static ModuleDescriptor addOpens(
 			ModuleDescriptor descriptor,
 			Collection<? extends ModuleDescriptor.Opens.Modifier> modifiers,
@@ -137,6 +159,8 @@ public final class Modules {
 		});
 	}
 
+	/// Returns a copy of `descriptor` with an additional qualified opens of
+	/// `packageName` to `targets` (no extra modifiers).
 	public static ModuleDescriptor addOpens(
 			ModuleDescriptor descriptor,
 			String packageName,
@@ -145,6 +169,8 @@ public final class Modules {
 		return addOpens(descriptor, Set.of(), packageName, Set.copyOf(targets));
 	}
 
+	/// Returns a copy of `descriptor` with an additional unqualified opens of
+	/// `packageName` (open to all modules).
 	public static ModuleDescriptor addOpens(ModuleDescriptor descriptor, String packageName) {
 		return addOpens(descriptor, packageName, Set.of());
 	}
