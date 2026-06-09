@@ -284,7 +284,7 @@ final class LinkResolverImpl implements LinkResolver {
 			}
 			throw new MethodResolutionException(MethodResolutionViolation.AMBIGUOUS_METHOD);
 		}
-		return abstract_;
+		return result != null ? result : abstract_;
 	}
 
 	private static final class IsStrictSubinterface extends ArrayDeque<ClassModel<?, ?>> {
