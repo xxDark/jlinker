@@ -17,10 +17,13 @@ public enum MethodResolutionViolation {
 	EXPECTED_STATIC_METHOD,
 	/// The resolved method is static, but a virtual/special method was required.
 	EXPECTED_VIRTUAL_METHOD,
-	/// A private interface method was found via `invokevirtual`; `invokespecial`
+	/// A private interface method was found via `invokevirtual` or `invokeinterface`; `invokespecial`
 	/// must be used instead.
 	REQUIRES_SPECIAL,
 	/// An `invokespecial` on an interface method was attempted from a caller that
 	/// does not directly implement the interface (JVMS §5.4.3.4).
 	INDIRECT_INTERFACE,
+	/// Maximally-specific selection of default interface methods found more
+	/// than one non-abstract candidate at the same specificity level.
+	AMBIGUOUS_METHOD,
 }
