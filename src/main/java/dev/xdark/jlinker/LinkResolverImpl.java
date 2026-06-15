@@ -7,7 +7,6 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.function.Predicate;
 
 @NullMarked
 final class LinkResolverImpl implements LinkResolver {
@@ -93,9 +92,6 @@ final class LinkResolverImpl implements LinkResolver {
 		if (Modifier.isStatic(accessFlags)) {
 			throw new MethodResolutionException(MethodResolutionViolation.EXPECTED_VIRTUAL_METHOD);
 		}
-		if (Modifier.isPrivate(accessFlags)) {
-			throw new MethodResolutionException(MethodResolutionViolation.REQUIRES_SPECIAL);
-		}
 		return method;
 	}
 
@@ -155,7 +151,6 @@ final class LinkResolverImpl implements LinkResolver {
 			String name,
 			MethodDescriptor descriptor
 	) throws MethodResolutionException {
-		// assert !Modifier.isInterface(refc.accessFlags());
 		var result = lookupMethodInClasses(refc, name, descriptor, false);
 		if (result == null) {
 			result = lookupMethodInInterfaces(refc, name, descriptor);
@@ -171,7 +166,6 @@ final class LinkResolverImpl implements LinkResolver {
 			String name,
 			MethodDescriptor descriptor
 	) throws MethodResolutionException {
-		// assert Modifier.isInterface(refc.accessFlags());
 		var result = lookupMethodInClasses(refc, name, descriptor, true);
 		if (result == null) {
 			result = lookupMethodInInterfaces(refc, name, descriptor);
@@ -187,25 +181,16 @@ final class LinkResolverImpl implements LinkResolver {
 			String name,
 			MethodDescriptor descriptor,
 			boolean isInterface
-	) throws MethodResolutionException {
-		var uncachedLookup = uncachedLookupMethod(refc, name, descriptor);
-		M result;
-		if (uncachedLookup != null) {
-			result = uncachedLookup.method;
-		} else {
-			result = null;
-		}
+	) {
+		var result = uncachedLookupMethod(refc, name, descriptor);
 		int flags;
 		if (isInterface &&
 				result != null &&
-				(Modifier.isStatic(flags = result.accessFlags()) || !Modifier.isPublic(flags) || Modifier.isAbstract(flags)) &&
-				"java/lang/Object".equals(uncachedLookup.refc.name())) {
-			uncachedLookup = null;
+				(Modifier.isStatic(flags = result.method.accessFlags()) || !Modifier.isPublic(flags) || Modifier.isAbstract(flags)) &&
+				"java/lang/Object".equals(result.refc.name())) {
+			return null;
 		}
-		if (uncachedLookup == null) {
-			uncachedLookup = lookupDefaultMethod(refc, name, descriptor);
-		}
-		return uncachedLookup;
+		return result;
 	}
 
 	private static <M extends MethodModel> @Nullable MethodLookupResult<M> uncachedLookupMethod(ClassModel<M, ?> refc,
@@ -218,20 +203,9 @@ final class LinkResolverImpl implements LinkResolver {
 		return null;
 	}
 
-	private static <M extends MethodModel> @Nullable MethodLookupResult<M> lookupDefaultMethod(ClassModel<M, ?> refc, String name,
-	                                                                                           MethodDescriptor descriptor) throws MethodResolutionException {
-		return lookupMethodInInterfaces(refc, name, descriptor, m -> !Modifier.isAbstract(m.accessFlags()));
-	}
-
-	private static <M extends MethodModel> @Nullable MethodLookupResult<M> lookupMethodInInterfaces(ClassModel<M, ?> refc,
-	                                                                                                String name, MethodDescriptor descriptor) throws MethodResolutionException {
-		return lookupMethodInInterfaces(refc, name, descriptor, __ -> true);
-	}
-
 	private static <M extends MethodModel> @Nullable MethodLookupResult<M> lookupMethodInInterfaces(
-			ClassModel<M, ?> refc, String name, MethodDescriptor descriptor,
-			Predicate<? super M> tester) throws MethodResolutionException {
-
+			ClassModel<M, ?> refc, String name, MethodDescriptor descriptor
+	) throws MethodResolutionException {
 		var candidates = new ArrayList<MethodLookupResult<M>>();
 		var visited = new HashSet<ClassModel<M, ?>>();
 		var queue = new ArrayDeque<ClassModel<M, ?>>();
@@ -251,40 +225,40 @@ final class LinkResolverImpl implements LinkResolver {
 			if (method == null) continue;
 			int flags = method.accessFlags();
 			if (!Modifier.isPublic(flags) || Modifier.isStatic(flags)) continue;
-			if (!tester.test(method)) continue;
 			candidates.add(new MethodLookupResult<>(iface, method));
 		}
 
 		if (candidates.isEmpty()) return null;
-		if (candidates.size() == 1) return candidates.get(0);
+		if (candidates.size() == 1) {
+			return candidates.get(0);
+		}
 
 		var maximal = new ArrayList<MethodLookupResult<M>>(candidates.size());
 		var isStrictSubinterface = new IsStrictSubinterface();
+		loop:
 		for (var candidate : candidates) {
-			var dominated = false;
 			for (var other : candidates) {
 				if (other != candidate && isStrictSubinterface.wellIsIt(other.refc(), candidate.refc())) {
-					dominated = true;
-					break;
+					continue loop;
 				}
 			}
-			if (!dominated) maximal.add(candidate);
+			maximal.add(candidate);
 		}
 
-		MethodLookupResult<M> result = null;
+		MethodLookupResult<M> concrete = null;
 		MethodLookupResult<M> abstract_ = null;
 		for (var candidate : maximal) {
 			if (Modifier.isAbstract(candidate.method.accessFlags())) {
 				abstract_ = candidate;
 				continue;
 			}
-			if (result == null) {
-				result = candidate;
+			if (concrete == null) {
+				concrete = candidate;
 				continue;
 			}
 			throw new MethodResolutionException(MethodResolutionViolation.AMBIGUOUS_METHOD);
 		}
-		return result != null ? result : abstract_;
+		return concrete != null ? concrete : abstract_;
 	}
 
 	private static final class IsStrictSubinterface extends ArrayDeque<ClassModel<?, ?>> {

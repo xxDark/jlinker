@@ -57,8 +57,8 @@ import java.lang.invoke.VarHandle;
 ///
 ///           R ← resolve M from C          // interface or virtual resolution
 ///
-///           if resolution fails with INDIRECT_INTERFACE
-///             deferred ← true → skip      // retry once more stubs exist
+///           if C is an interface and R's owner ∉ direct superinterfaces of C
+///             deferred ← true → skip      // same — not yet reachable
 ///
 ///           create method M' on C with R's access flags and M's descriptor
 ///           if R is not abstract
@@ -184,7 +184,9 @@ public interface LinkResolver {
 	/// @throws MethodResolutionException with [MethodResolutionViolation#EXPECTED_INTERFACE]
 	///                                   if `refc` is not an interface, or
 	///                                   [MethodResolutionViolation#NO_SUCH_METHOD] if
-	///                                   the method cannot be found
+	///                                   the method cannot be found, or
+	///                                   [MethodResolutionViolation#AMBIGUOUS_METHOD] if
+	///                                   maximally specific selection found more than one non-abstract method.
 	<M extends MethodModel> M resolveInterfaceMethod(
 			ClassModel<? extends M, ?> refc,
 			String name,

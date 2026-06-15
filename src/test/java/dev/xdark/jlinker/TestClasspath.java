@@ -1,5 +1,6 @@
 package dev.xdark.jlinker;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.objectweb.asm.ClassReader;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.util.jar.JarFile;
 import java.util.zip.ZipFile;
 
+@Disabled("Some classes reference sun classes from JDK 8 era.")
 @DisabledIfEnvironmentVariable(
 		named = "CI",
 		matches = ".*"
