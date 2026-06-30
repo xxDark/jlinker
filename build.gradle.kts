@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "dev.xdark"
-version = "3.0.1"
+version = "3.1.0"
 
 repositories.mavenCentral()
 
@@ -15,9 +15,7 @@ dependencies {
     testImplementation(libs.bundles.asm)
 
     compileOnly(libs.jspecify)
-    testCompileOnly(libs.jspecify)
     compileOnly(libs.jetbrains.annotations)
-    testCompileOnly(libs.jetbrains.annotations)
 }
 
 tasks.withType<JavaCompile>().configureEach {

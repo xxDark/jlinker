@@ -40,8 +40,13 @@ public interface ClassModel<METHOD extends MethodModel, FIELD extends FieldModel
 	/// [Modifier#isInterface(int)]) to interpret these flags.
 	int accessFlags();
 
-	/// Returns the direct superclass of this class, or `null` for `java/lang/Object`
-	/// and interfaces.
+	/// Returns the direct superclass of this class, or `null` for `java/lang/Object`.
+	///
+	/// Interfaces are a deliberate special case. In the class file an interface's
+	/// `super_class` index is `0`, but this method **must** return the
+	/// `java/lang/Object` model for an interface — not `null`. The resolver relies
+	/// on this to expose [Object]'s public instance methods during interface method
+	/// resolution (JVMS §5.4.3.4); see [LinkResolver] for the full rationale.
 	@Nullable ClassModel<METHOD, FIELD> superClass();
 
 	/// Returns the directly implemented or extended interfaces of this class.

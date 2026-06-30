@@ -13,6 +13,23 @@ import java.lang.invoke.VarHandle;
 /// algorithm on top of that model without depending on any particular bytecode
 /// or reflection framework.
 ///
+/// ## Interface superclass requirement
+///
+/// Interface method resolution (JVMS §5.4.3.4) must consider the public,
+/// non-`static` instance methods declared by `java/lang/Object` — such as
+/// [Object#toString()], [Object#equals(Object)] and [Object#hashCode()].
+/// The resolver reaches those methods by walking [ClassModel#superClass()]
+/// up the class chain until it reaches `java/lang/Object`.
+///
+/// In a real class file an interface's `super_class` index is `0`, so a
+/// faithful [ClassModel] would naturally return `null` from
+/// [ClassModel#superClass()] for an interface. **Callers must not do that.**
+/// For every interface, [ClassModel#superClass()] must return the
+/// `java/lang/Object` model — the caller has to deliberately "lie" about the
+/// superclass relative to the class file. Otherwise `Object`'s methods are
+/// invisible to interface resolution and lookups such as `toString` on an
+/// interface reference fail with [MethodResolutionViolation#NO_SUCH_METHOD].
+///
 /// A single instance is stateless, cheap to create and thread-safe.
 /// Every call performs a fresh traversal of the class hierarchy;
 /// the implementation will never maintain internal state or caches.

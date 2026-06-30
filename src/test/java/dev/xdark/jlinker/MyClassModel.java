@@ -38,6 +38,11 @@ final class MyClassModel implements ClassModel<MyMethodModel, MyFieldModel> {
 	@Override
 	public @Nullable ClassModel<MyMethodModel, MyFieldModel> superClass() {
 		var sp = classNode.superName;
+		if (sp == null) {
+			if (!"java/lang/Object".equals(classNode.name)) {
+				sp = "java/lang/Object";
+			}
+		}
 		return sp == null ? null : classLookup.findClass(sp);
 	}
 
